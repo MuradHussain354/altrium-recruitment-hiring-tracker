@@ -1,7 +1,10 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import healthRoutes from './routes/health.routes';
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
 
@@ -12,8 +15,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Base Route
+// API Base Routes
 app.use('/api/v1/health', healthRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
@@ -24,12 +29,6 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Global Error Handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('[SERVER ERROR]', err);
-  res.status(500).json({
-    error: 'InternalServerError',
-    message: err.message || 'An unexpected error occurred.'
-  });
-});
+app.use(errorHandler);
 
 export default app;
