@@ -297,10 +297,12 @@ export class InterviewService {
   // ── INTERVIEWER REPLACEMENT ───────────────────────────────────────────────
 
   /**
-   * Replace all interviewers for an Interview (full replace semantics).
+   * Update interviewers for an Interview using a diff-based strategy.
    * HR only.
-   * Old InterviewerAssignment rows deleted + new rows created + audit log inside
-   * a single prisma.$transaction.
+   *
+   * Retained assignments are preserved untouched (retaining id, assignedAt, feedbackSubmitted).
+   * If any removed interviewer has feedbackSubmitted === true, the operation is rejected with 409 Conflict.
+   * Deleted and newly added assignments + audit log execute inside a single prisma.$transaction.
    */
   static async updateInterviewers(actorId: string, interviewId: string, input: UpdateInterviewersInput) {
     const interview = await prisma.interview.findUnique({
@@ -328,26 +330,60 @@ export class InterviewService {
       throw new AppError(400, 'One or more interviewers have an invalid role. Only HR and TeamLead are permitted.');
     }
 
+    // Fetch all existing assignments
+    const existingAssignments = await prisma.interviewerAssignment.findMany({
+      where: { interviewId }
+    });
+    const existingIds = existingAssignments.map((a) => a.interviewerId);
+
+    // Compute differences
+    const newIds = input.interviewerIds;
+    const removedAssignments = existingAssignments.filter((a) => !newIds.includes(a.interviewerId));
+    const addedIds = newIds.filter((id) => !existingIds.includes(id));
+    const retainedIds = existingIds.filter((id) => newIds.includes(id));
+
+    // Reject if removing any interviewer who has already submitted feedback
+    const removingSubmitted = removedAssignments.some((a) => a.feedbackSubmitted);
+    if (removingSubmitted) {
+      throw new AppError(
+        409,
+        'Cannot replace interviewers: One or more assigned interviewers have already submitted feedback and cannot be removed.'
+      );
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
-      // Full replace: delete old assignments then create new
-      await tx.interviewerAssignment.deleteMany({
-        where: { interviewId }
-      });
+      // 1. Delete only removed non-submitted assignments
+      if (removedAssignments.length > 0) {
+        await tx.interviewerAssignment.deleteMany({
+          where: {
+            interviewId,
+            interviewerId: { in: removedAssignments.map((a) => a.interviewerId) }
+          }
+        });
+      }
 
-      await tx.interviewerAssignment.createMany({
-        data: input.interviewerIds.map((interviewerId) => ({
-          interviewId,
-          interviewerId
-        }))
-      });
+      // 2. Create only newly added assignments
+      if (addedIds.length > 0) {
+        await tx.interviewerAssignment.createMany({
+          data: addedIds.map((interviewerId) => ({
+            interviewId,
+            interviewerId
+          }))
+        });
+      }
 
+      // 3. Record AuditLog in the same transaction
       await tx.auditLog.create({
         data: {
           actorId,
           actionType: 'INTERVIEW_INTERVIEWERS_UPDATED',
           entityType: 'Interview',
           entityId:   interviewId,
-          details:    JSON.stringify({ newInterviewerIds: input.interviewerIds })
+          details:    JSON.stringify({
+            addedInterviewerIds:    addedIds,
+            removedInterviewerIds:  removedAssignments.map((a) => a.interviewerId),
+            retainedInterviewerIds: retainedIds
+          })
         }
       });
 

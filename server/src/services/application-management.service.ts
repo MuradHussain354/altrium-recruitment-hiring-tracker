@@ -126,6 +126,48 @@ export class ApplicationManagementService {
       throw new AppError(400, 'Application is already at the specified stage.');
     }
 
+    // Gate Enforcement: evaluate current stage gating rules
+    const currentStage = await prisma.stage.findUnique({
+      where: { id: application.currentStageId }
+    });
+
+    if (!currentStage) {
+      throw new AppError(404, 'Current stage not found.');
+    }
+
+    if (currentStage.isGating && currentStage.feedbackRequiredCount > 0) {
+      // Query qualifying feedback for this Application at the current Stage
+      const qualifyingFeedbacks = await prisma.feedback.findMany({
+        where: {
+          interview: {
+            applicationId: application.id,
+            stageId:       application.currentStageId
+          }
+        },
+        include: {
+          interview: {
+            include: {
+              assignments: true
+            }
+          }
+        }
+      });
+
+      // A Feedback qualifies iff corresponding InterviewerAssignment has feedbackSubmitted === true
+      const qualifyingFeedbackCount = qualifyingFeedbacks.filter((fb) =>
+        fb.interview.assignments.some(
+          (a) => a.interviewerId === fb.interviewerId && a.feedbackSubmitted === true
+        )
+      ).length;
+
+      if (qualifyingFeedbackCount < currentStage.feedbackRequiredCount) {
+        throw new AppError(
+          409,
+          `Stage movement blocked: Current stage '${currentStage.name}' requires ${currentStage.feedbackRequiredCount} submitted feedback(s), but only ${qualifyingFeedbackCount} qualifying feedback(s) have been submitted.`
+        );
+      }
+    }
+
     const oldStageId = application.currentStageId;
 
     // Atomically update currentStageId + write audit log in a single transaction

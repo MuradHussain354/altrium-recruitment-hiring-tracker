@@ -9,6 +9,7 @@ import publicRoutes from './routes/public.routes';
 import stageRoutes from './routes/stage.routes';
 import applicationManagementRoutes from './routes/application-management.routes';
 import interviewRoutes from './routes/interview.routes';
+import feedbackRoutes from './routes/feedback.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/api/v1/positions/:positionId/stages', stageRoutes);
 app.use('/api/v1/public', publicRoutes);
 app.use('/api/v1/applications', applicationManagementRoutes);
 app.use('/api/v1/interviews', interviewRoutes);
+app.use('/api/v1/interviews', feedbackRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
