@@ -75,9 +75,9 @@ async function runApplicationManagementTests() {
       description: 'Node.js microservices development'
     });
 
-    const stage1 = await StageService.createStage(hrUser.id, position.id, { name: 'Applied',    sequenceOrder: 1 });
-    const stage2 = await StageService.createStage(hrUser.id, position.id, { name: 'Screening',  sequenceOrder: 2 });
-    const stage3 = await StageService.createStage(hrUser.id, position.id, { name: 'Interview',  sequenceOrder: 3 });
+    const stage1 = await StageService.createStage(hrUser.id, position.id, { name: 'Applied',    sequenceOrder: 1, isGating: false });
+    const stage2 = await StageService.createStage(hrUser.id, position.id, { name: 'Screening',  sequenceOrder: 2, isGating: false });
+    const stage3 = await StageService.createStage(hrUser.id, position.id, { name: 'Interview',  sequenceOrder: 3, isGating: false });
 
     // Open position so public application can be submitted
     await prisma.position.update({
