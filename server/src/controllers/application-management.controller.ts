@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApplicationManagementService } from '../services/application-management.service';
+import { TeamAssignmentService } from '../services/team-assignment.service';
 import {
   listApplicationsSchema,
   applicationIdParamSchema,
   changeStageSchema,
   changeStatusSchema
 } from '../schemas/application-management.schema';
+import { assignTeamBodySchema, teamApplicationParamSchema } from '../schemas/team-assignment.schema';
 import { AppError } from '../utils/errors';
 
 export class ApplicationManagementController {
@@ -111,6 +113,39 @@ export class ApplicationManagementController {
 
       res.status(200).json({
         message: 'Application status updated successfully',
+        data:    application
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PATCH /api/v1/applications/:applicationId/team
+   * HR only: assign a Team to an Application
+   */
+  static async assignTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = teamApplicationParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        const message = paramParsed.error.errors.map((e) => e.message).join(', ');
+        throw new AppError(400, message);
+      }
+
+      const bodyParsed = assignTeamBodySchema.safeParse(req.body);
+      if (!bodyParsed.success) {
+        const message = bodyParsed.error.errors.map((e) => e.message).join(', ');
+        throw new AppError(400, message);
+      }
+
+      const application = await TeamAssignmentService.assignTeam(
+        req.user!.id,
+        paramParsed.data.applicationId,
+        bodyParsed.data
+      );
+
+      res.status(200).json({
+        message: 'Team assigned successfully',
         data:    application
       });
     } catch (error) {
