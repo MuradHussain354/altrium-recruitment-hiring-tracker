@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
+import positionRoutes from './routes/position.routes';
+import publicRoutes from './routes/public.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -19,6 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/positions', positionRoutes);
+app.use('/api/v1/public', publicRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
