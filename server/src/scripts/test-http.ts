@@ -36,7 +36,17 @@ async function runHttpTests() {
 
   try {
     // 1. Clean DB & Bootstrap Manager
+    await prisma.notification.deleteMany({});
+    await prisma.feedbackCriterionScore.deleteMany({});
+    await prisma.feedback.deleteMany({});
+    await prisma.interviewerAssignment.deleteMany({});
+    await prisma.interview.deleteMany({});
+    await prisma.application.deleteMany({});
+    await prisma.candidate.deleteMany({});
+    await prisma.stage.deleteMany({});
+    await prisma.position.deleteMany({});
     await prisma.auditLog.deleteMany({});
+    await prisma.team.deleteMany({});
     await prisma.user.deleteMany({});
     await bootstrapManager();
 
