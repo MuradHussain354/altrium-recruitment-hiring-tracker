@@ -33,7 +33,17 @@ async function runAuthTests() {
 
   try {
     // Clean up test data if any from previous runs
+    await prisma.notification.deleteMany({});
+    await prisma.feedbackCriterionScore.deleteMany({});
+    await prisma.feedback.deleteMany({});
+    await prisma.interviewerAssignment.deleteMany({});
+    await prisma.interview.deleteMany({});
+    await prisma.application.deleteMany({});
+    await prisma.candidate.deleteMany({});
+    await prisma.stage.deleteMany({});
+    await prisma.position.deleteMany({});
     await prisma.auditLog.deleteMany({});
+    await prisma.team.deleteMany({});
     await prisma.user.deleteMany({});
 
     // Test 1: Manager Bootstrap

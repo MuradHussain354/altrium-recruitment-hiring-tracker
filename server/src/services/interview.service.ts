@@ -1,6 +1,6 @@
 import prisma from '../config/prisma';
 import { AppError } from '../utils/errors';
-import { Role } from '@prisma/client';
+import { Role, RecipientType, NotificationType, NotificationChannel } from '@prisma/client';
 import {
   CreateInterviewInput,
   UpdateInterviewInput,
@@ -124,6 +124,19 @@ export class InterviewService {
           interviewerId
         }))
       });
+
+      // Create notification records for all assigned internal interviewers
+      if (input.interviewerIds.length > 0) {
+        await tx.notification.createMany({
+          data: input.interviewerIds.map((interviewerId) => ({
+            applicationId,
+            recipientType: RecipientType.User,
+            recipientId:   interviewerId,
+            type:          NotificationType.InterviewScheduled,
+            channel:       NotificationChannel.Email
+          }))
+        });
+      }
 
       await tx.auditLog.create({
         data: {
@@ -368,6 +381,17 @@ export class InterviewService {
           data: addedIds.map((interviewerId) => ({
             interviewId,
             interviewerId
+          }))
+        });
+
+        // Create notification records for newly added interviewers only
+        await tx.notification.createMany({
+          data: addedIds.map((interviewerId) => ({
+            applicationId: interview.applicationId,
+            recipientType: RecipientType.User,
+            recipientId:   interviewerId,
+            type:          NotificationType.InterviewScheduled,
+            channel:       NotificationChannel.Email
           }))
         });
       }
