@@ -20,10 +20,19 @@ import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// Portal Homepages (Placeholders)
+// Portal Homepages (Placeholders for Manager & TeamLead)
 import ManagerHomePage from './pages/ManagerHomePage';
-import HRHomePage from './pages/HRHomePage';
 import TeamLeadHomePage from './pages/TeamLeadHomePage';
+
+// HR Portal Pages
+import { HRDashboardPage } from './pages/hr/HRDashboardPage';
+import { HRPositionsPage } from './pages/hr/HRPositionsPage';
+import { HRCreatePositionPage } from './pages/hr/HRCreatePositionPage';
+import { HRPositionDetailPage } from './pages/hr/HRPositionDetailPage';
+import { HRPipelineEditorPage } from './pages/hr/HRPipelineEditorPage';
+import { HRApplicationsPage } from './pages/hr/HRApplicationsPage';
+import { HRApplicationDetailPage } from './pages/hr/HRApplicationDetailPage';
+import { HRInterviewsPage } from './pages/hr/HRInterviewsPage';
 
 export default function App() {
   return (
@@ -56,8 +65,14 @@ export default function App() {
 
           {/* HR Protected Area */}
           <Route element={<RoleRoute allowedRoles={['HR']} />}>
-            <Route path="/hr" element={<HRHomePage />} />
-            <Route path="/hr/*" element={<HRHomePage />} />
+            <Route path="/hr" element={<HRDashboardPage />} />
+            <Route path="/hr/positions" element={<HRPositionsPage />} />
+            <Route path="/hr/positions/new" element={<HRCreatePositionPage />} />
+            <Route path="/hr/positions/:positionId" element={<HRPositionDetailPage />} />
+            <Route path="/hr/positions/:positionId/pipeline" element={<HRPipelineEditorPage />} />
+            <Route path="/hr/applications" element={<HRApplicationsPage />} />
+            <Route path="/hr/applications/:applicationId" element={<HRApplicationDetailPage />} />
+            <Route path="/hr/interviews" element={<HRInterviewsPage />} />
           </Route>
 
           {/* TeamLead Protected Area */}
