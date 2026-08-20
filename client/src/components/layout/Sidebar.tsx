@@ -67,29 +67,23 @@ export const Sidebar: React.FC = () => {
             <NavLink
               to="/hr/positions"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
               <Briefcase size={18} />
               <span>Positions</span>
-              <span className="sidebar-pill">Preview</span>
             </NavLink>
             <NavLink
               to="/hr/applications"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
               <FileText size={18} />
               <span>Applications</span>
-              <span className="sidebar-pill">Preview</span>
             </NavLink>
             <NavLink
               to="/hr/interviews"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
               <Calendar size={18} />
               <span>Interviews</span>
-              <span className="sidebar-pill">Preview</span>
             </NavLink>
           </>
         );
