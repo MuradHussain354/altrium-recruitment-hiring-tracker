@@ -20,9 +20,19 @@ import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-// Portal Homepages (Placeholders for Manager & TeamLead)
-import ManagerHomePage from './pages/ManagerHomePage';
-import TeamLeadHomePage from './pages/TeamLeadHomePage';
+// Manager Portal Pages
+import { ManagerDashboardPage } from './pages/manager/ManagerDashboardPage';
+import { ManagerPositionsReportPage } from './pages/manager/ManagerPositionsReportPage';
+import { ManagerPipelineReportPage } from './pages/manager/ManagerPipelineReportPage';
+import { ManagerInterviewsReportPage } from './pages/manager/ManagerInterviewsReportPage';
+import { ManagerAccountsPage } from './pages/manager/ManagerAccountsPage';
+import { ManagerNotificationsPage } from './pages/manager/ManagerNotificationsPage';
+
+// TeamLead Portal Pages
+import { TeamLeadDashboardPage } from './pages/teamlead/TeamLeadDashboardPage';
+import { TeamLeadInterviewsPage } from './pages/teamlead/TeamLeadInterviewsPage';
+import { TeamLeadInterviewDetailPage } from './pages/teamlead/TeamLeadInterviewDetailPage';
+import { TeamLeadNotificationsPage } from './pages/teamlead/TeamLeadNotificationsPage';
 
 // HR Portal Pages
 import { HRDashboardPage } from './pages/hr/HRDashboardPage';
@@ -59,8 +69,12 @@ export default function App() {
         <Route element={<PortalLayout />}>
           {/* Manager Protected Area */}
           <Route element={<RoleRoute allowedRoles={['Manager']} />}>
-            <Route path="/manager" element={<ManagerHomePage />} />
-            <Route path="/manager/*" element={<ManagerHomePage />} />
+            <Route path="/manager" element={<ManagerDashboardPage />} />
+            <Route path="/manager/reports/positions" element={<ManagerPositionsReportPage />} />
+            <Route path="/manager/reports/pipeline" element={<ManagerPipelineReportPage />} />
+            <Route path="/manager/reports/interviews" element={<ManagerInterviewsReportPage />} />
+            <Route path="/manager/accounts" element={<ManagerAccountsPage />} />
+            <Route path="/manager/notifications" element={<ManagerNotificationsPage />} />
           </Route>
 
           {/* HR Protected Area */}
@@ -77,8 +91,10 @@ export default function App() {
 
           {/* TeamLead Protected Area */}
           <Route element={<RoleRoute allowedRoles={['TeamLead']} />}>
-            <Route path="/team-lead" element={<TeamLeadHomePage />} />
-            <Route path="/team-lead/*" element={<TeamLeadHomePage />} />
+            <Route path="/team-lead" element={<TeamLeadDashboardPage />} />
+            <Route path="/team-lead/interviews" element={<TeamLeadInterviewsPage />} />
+            <Route path="/team-lead/interviews/:interviewId" element={<TeamLeadInterviewDetailPage />} />
+            <Route path="/team-lead/notifications" element={<TeamLeadNotificationsPage />} />
           </Route>
         </Route>
       </Route>
