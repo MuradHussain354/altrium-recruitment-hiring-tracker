@@ -5,14 +5,28 @@ import { requireAuth, requireRole } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-// All user management endpoints require authentication and Manager role
+// All user endpoints require authentication
 router.use(requireAuth);
-router.use(requireRole(Role.Manager));
 
-// POST /api/v1/users - Manager creates HR or TeamLead account
-router.post('/', UserController.createManagedUser);
+// GET /api/v1/users/interviewers - List active HR and TeamLead interviewers (HR and Manager)
+router.get(
+  '/interviewers',
+  requireRole(Role.HR, Role.Manager),
+  UserController.getEligibleInterviewers
+);
 
-// PATCH /api/v1/users/:id/status - Manager activates/deactivates user account
-router.patch('/:id/status', UserController.setUserStatus);
+// POST /api/v1/users - Manager creates HR or TeamLead account (Manager only)
+router.post(
+  '/',
+  requireRole(Role.Manager),
+  UserController.createManagedUser
+);
+
+// PATCH /api/v1/users/:id/status - Manager activates/deactivates user account (Manager only)
+router.patch(
+  '/:id/status',
+  requireRole(Role.Manager),
+  UserController.setUserStatus
+);
 
 export default router;

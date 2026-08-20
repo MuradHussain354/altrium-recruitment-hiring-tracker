@@ -4,6 +4,22 @@ import { createManagedUserSchema, updateUserStatusSchema } from '../schemas/user
 import { AppError } from '../utils/errors';
 
 export class UserController {
+  /**
+   * GET /api/v1/users/interviewers
+   * HR & Manager: list active HR and TeamLead interviewers
+   */
+  static async getEligibleInterviewers(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const interviewers = await UserService.listEligibleInterviewers();
+      res.status(200).json({
+        data: interviewers,
+        count: interviewers.length
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async createManagedUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {

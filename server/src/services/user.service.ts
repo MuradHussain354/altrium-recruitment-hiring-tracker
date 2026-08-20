@@ -1,10 +1,48 @@
 import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
 import prisma from '../config/prisma';
 import { AppError } from '../utils/errors';
 import { CreateManagedUserInput, UpdateUserStatusInput } from '../schemas/user.schema';
 import { SafeUserProfile } from './auth.service';
 
+export interface EligibleInterviewerProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  isActive: boolean;
+  teamId: string | null;
+}
+
 export class UserService {
+  /**
+   * List active HR and TeamLead users eligible for interview assignment.
+   * Excludes Managers, inactive users, and sensitive fields (passwordHash).
+   * Ordered alphabetically by name ASC.
+   * Read-only: zero audit logs created.
+   */
+  static async listEligibleInterviewers(): Promise<EligibleInterviewerProfile[]> {
+    return prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: {
+          in: [Role.HR, Role.TeamLead]
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        teamId: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+  }
+
   static async createManagedUser(
     managerId: string,
     input: CreateManagedUserInput

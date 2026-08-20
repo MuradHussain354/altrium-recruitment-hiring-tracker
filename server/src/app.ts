@@ -12,6 +12,7 @@ import interviewRoutes from './routes/interview.routes';
 import feedbackRoutes from './routes/feedback.routes';
 import notificationRoutes from './routes/notification.routes';
 import reportRoutes from './routes/report.routes';
+import teamRoutes from './routes/team.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/teams', teamRoutes);
 app.use('/api/v1/positions', positionRoutes);
 app.use('/api/v1/positions/:positionId/stages', stageRoutes);
 app.use('/api/v1/public', publicRoutes);
