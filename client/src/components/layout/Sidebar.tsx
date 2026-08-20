@@ -9,7 +9,7 @@ import {
   FileText,
   Calendar,
   Bell,
-  MessageSquare,
+  GitMerge,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -29,25 +29,46 @@ export const Sidebar: React.FC = () => {
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
               <LayoutDashboard size={18} />
-              <span>Dashboard</span>
+              <span>Overview</span>
+            </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>REPORTS</div>
+            <NavLink
+              to="/manager/reports/positions"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Briefcase size={18} />
+              <span>Positions Report</span>
             </NavLink>
             <NavLink
-              to="/manager/users"
+              to="/manager/reports/pipeline"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
+            >
+              <GitMerge size={18} />
+              <span>Pipeline Report</span>
+            </NavLink>
+            <NavLink
+              to="/manager/reports/interviews"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Calendar size={18} />
+              <span>Interviews Report</span>
+            </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>ADMINISTRATION</div>
+            <NavLink
+              to="/manager/accounts"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
               <Users size={18} />
-              <span>Accounts (Sprint 1)</span>
-              <span className="sidebar-pill">Preview</span>
+              <span>User Accounts</span>
             </NavLink>
             <NavLink
-              to="/manager/reports"
+              to="/manager/notifications"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
-              <BarChart3 size={18} />
-              <span>Manager Reports</span>
-              <span className="sidebar-pill">Preview</span>
+              <Bell size={18} />
+              <span>Notifications</span>
             </NavLink>
           </>
         );
@@ -101,40 +122,18 @@ export const Sidebar: React.FC = () => {
               <span>Dashboard</span>
             </NavLink>
             <NavLink
-              to="/team-lead/applications"
-              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
-            >
-              <FileText size={18} />
-              <span>Assigned Apps</span>
-              <span className="sidebar-pill">Preview</span>
-            </NavLink>
-            <NavLink
               to="/team-lead/interviews"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
               <Calendar size={18} />
-              <span>Interviews</span>
-              <span className="sidebar-pill">Preview</span>
+              <span>Assigned Interviews</span>
             </NavLink>
             <NavLink
               to="/team-lead/notifications"
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
             >
               <Bell size={18} />
               <span>Notifications</span>
-              <span className="sidebar-pill">Preview</span>
-            </NavLink>
-            <NavLink
-              to="/team-lead/feedback"
-              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              onClick={(e) => e.preventDefault()}
-            >
-              <MessageSquare size={18} />
-              <span>Feedback</span>
-              <span className="sidebar-pill">Preview</span>
             </NavLink>
           </>
         );
