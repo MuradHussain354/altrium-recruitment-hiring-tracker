@@ -220,18 +220,19 @@ export const HRApplicationDetailPage: React.FC = () => {
                 </span>
               </div>
               <div className="profile-item profile-item--full">
-                <span className="profile-item__label">Resume / CV</span>
+                <span className="profile-item__label">CV / Resume</span>
                 {application.candidate?.resumeUrl ? (
                   <a
                     href={application.candidate.resumeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="resume-link-btn"
+                    id="hr-view-cv-link"
                   >
-                    📄 View Candidate Resume (External Link) ↗
+                    📄 View CV / Resume ↗
                   </a>
                 ) : (
-                  <span className="text-muted">No resume link provided</span>
+                  <span className="text-muted">No CV / Resume provided</span>
                 )}
               </div>
             </div>

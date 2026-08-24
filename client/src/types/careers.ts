@@ -26,11 +26,12 @@ export interface PublicPositionFilters {
   department?: string;
 }
 
-// Application form input — exactly what POST /api/v1/public/applications accepts
+// Application form input — what client passes to submitApplication
 export interface PublicApplicationInput {
   name: string;
   email: string;
   phone?: string;
+  resume?: File;
   resumeUrl?: string;
   positionId: string;
   // source is intentionally omitted — backend defaults to "Direct"
