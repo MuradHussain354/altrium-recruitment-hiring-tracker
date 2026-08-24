@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, Link2, Send, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Mail, Phone, FileText, Upload, X, Send, Loader2 } from 'lucide-react';
 import { PublicPosition, PublicApplicationInput, PublicApplicationResponse } from '../../types/careers';
 import { submitApplication } from '../../api/publicCareers.api';
 import { ApiErrorResponse } from '../../types/auth';
@@ -13,20 +13,20 @@ interface ApplicationFormProps {
 interface FieldErrors {
   name?: string;
   email?: string;
-  resumeUrl?: string;
+  file?: string;
 }
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx'];
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-function isValidUrl(value: string): boolean {
-  try {
-    new URL(value.trim());
-    return true;
-  } catch {
-    return false;
-  }
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function mapApiError(err: any): string {
@@ -47,7 +47,7 @@ function mapApiError(err: any): string {
   if (err?.error === 'NetworkError') {
     return 'Could not reach the server. Please check your connection and try again.';
   }
-  // Zod validation messages from backend are already user-friendly
+  // Zod / Multer validation messages from backend
   if (message) return message;
   return 'An unexpected error occurred. Please try again.';
 }
@@ -56,10 +56,51 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [resumeUrl, setResumeUrl] = useState('');
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFieldErrors((prev) => ({ ...prev, file: undefined }));
+
+    if (!selectedFile) {
+      setCvFile(null);
+      return;
+    }
+
+    const ext = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        file: 'Invalid file format. Only PDF, DOC, and DOCX files are allowed.'
+      }));
+      setCvFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        file: 'File size exceeds the 5 MB limit. Please upload a smaller file.'
+      }));
+      setCvFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setCvFile(selectedFile);
+  };
+
+  const handleRemoveFile = () => {
+    setCvFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const validate = (): boolean => {
     const errors: FieldErrors = {};
@@ -74,9 +115,8 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
       errors.email = 'Please enter a valid email address.';
     }
 
-    // resumeUrl: optional — only validate if non-empty
-    if (resumeUrl.trim() !== '' && !isValidUrl(resumeUrl)) {
-      errors.resumeUrl = 'Please enter a valid URL (e.g. https://...).';
+    if (!cvFile) {
+      errors.file = 'Please select your CV / Resume file.';
     }
 
     setFieldErrors(errors);
@@ -87,16 +127,16 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
     e.preventDefault();
     setSubmitError(null);
 
-    if (!validate()) return;
+    if (!validate() || !cvFile) return;
 
     const payload: PublicApplicationInput = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       positionId: position.id,
+      resume: cvFile
     };
 
     if (phone.trim()) payload.phone = phone.trim();
-    if (resumeUrl.trim()) payload.resumeUrl = resumeUrl.trim();
 
     setIsSubmitting(true);
     try {
@@ -187,30 +227,63 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
         </div>
       </div>
 
-      {/* Resume / CV URL (optional) */}
+      {/* CV / Resume File Upload */}
       <div className="form-group">
-        <label htmlFor="app-resume" className="form-label">
-          Resume / CV URL <span className="form-optional">(optional)</span>
+        <label htmlFor="app-resume-file" className="form-label">
+          CV / Resume <span className="form-required" aria-hidden="true">*</span>
         </label>
-        <div className="input-icon-wrapper">
-          <Link2 size={16} className="input-icon" aria-hidden="true" />
+
+        <div className="file-upload-container">
           <input
-            id="app-resume"
-            type="url"
-            className={`input-field input-field--icon-left${fieldErrors.resumeUrl ? ' input-field--error' : ''}`}
-            placeholder="https://..."
-            value={resumeUrl}
-            onChange={(e) => { setResumeUrl(e.target.value); setFieldErrors((prev) => ({ ...prev, resumeUrl: undefined })); }}
+            id="app-resume-file"
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFileChange}
             disabled={isSubmitting}
-            aria-describedby={fieldErrors.resumeUrl ? 'app-resume-error' : 'app-resume-helper'}
-            autoComplete="off"
+            aria-required="true"
+            aria-describedby={fieldErrors.file ? 'app-resume-error' : 'app-resume-helper'}
+            className="file-upload-input"
+            style={{ display: 'none' }}
           />
+
+          {!cvFile ? (
+            <button
+              type="button"
+              className={`file-upload-btn btn-secondary${fieldErrors.file ? ' file-upload-btn--error' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSubmitting}
+              id="app-file-picker-btn"
+            >
+              <Upload size={16} aria-hidden="true" />
+              <span>Choose CV File</span>
+            </button>
+          ) : (
+            <div className="file-upload-selected" id="app-file-selected-info">
+              <div className="file-upload-info">
+                <FileText size={16} className="file-upload-icon" aria-hidden="true" />
+                <span className="file-upload-name">{cvFile.name}</span>
+                <span className="file-upload-size">({formatFileSize(cvFile.size)})</span>
+              </div>
+              <button
+                type="button"
+                className="file-upload-remove-btn"
+                onClick={handleRemoveFile}
+                disabled={isSubmitting}
+                aria-label="Remove selected CV file"
+                title="Remove file"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
         </div>
-        {fieldErrors.resumeUrl ? (
-          <p id="app-resume-error" className="field-error" role="alert">{fieldErrors.resumeUrl}</p>
+
+        {fieldErrors.file ? (
+          <p id="app-resume-error" className="field-error" role="alert">{fieldErrors.file}</p>
         ) : (
           <p id="app-resume-helper" className="form-helper">
-            Paste a publicly accessible link to your resume or CV.
+            Accepted formats: PDF, DOC, DOCX • Maximum size: 5 MB
           </p>
         )}
       </div>

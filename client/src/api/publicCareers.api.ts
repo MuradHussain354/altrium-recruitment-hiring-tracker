@@ -45,7 +45,7 @@ export async function getPublicPosition(
 }
 
 /**
- * Submit a candidate application for an Open position.
+ * Submit a candidate application for an Open position with CV file upload.
  * Returns the full backend envelope: { message: string, data: SubmittedApplication }
  * Throws ApiErrorResponse on 400, 404, 409, or network error.
  *
@@ -54,5 +54,20 @@ export async function getPublicPosition(
 export async function submitApplication(
   input: PublicApplicationInput
 ): Promise<PublicApplicationResponse> {
-  return apiClient.post<PublicApplicationResponse>('/public/applications', input);
+  const formData = new FormData();
+  formData.append('name', input.name);
+  formData.append('email', input.email);
+  formData.append('positionId', input.positionId);
+
+  if (input.phone && input.phone.trim() !== '') {
+    formData.append('phone', input.phone.trim());
+  }
+
+  if (input.resume) {
+    formData.append('resume', input.resume);
+  } else if (input.resumeUrl && input.resumeUrl.trim() !== '') {
+    formData.append('resumeUrl', input.resumeUrl.trim());
+  }
+
+  return apiClient.post<PublicApplicationResponse>('/public/applications', formData);
 }
