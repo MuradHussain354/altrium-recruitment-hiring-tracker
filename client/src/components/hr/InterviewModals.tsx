@@ -152,7 +152,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                 onChange={(e) => setStageId(e.target.value)}
                 required
               >
-                {stages.map((s) => (
+                {(stages || []).map((s) => (
                   <option key={s.id} value={s.id}>
                     Stage {s.sequenceOrder}: {s.name} {s.isGating ? '🔒' : ''}
                   </option>
@@ -489,12 +489,13 @@ export const ReplaceInterviewersModal: React.FC<ReplaceInterviewersModalProps> =
     if (isOpen && interview) {
       setError(null);
       setIsConflict(false);
-      setSelectedIds(interview.interviewers.map((i) => i.interviewerId));
+      const currentInterviewers = interview.interviewers ?? interview.assignments ?? [];
+      setSelectedIds(currentInterviewers.map((i) => i.interviewerId));
 
       setIsFetching(true);
       hrLookupsApi.listEligibleInterviewers()
         .then((res) => {
-          setEligibleInterviewers(res.data);
+          setEligibleInterviewers(res.data || []);
         })
         .catch((err: any) => {
           setError(err?.message || 'Failed to load eligible interviewers.');
@@ -506,6 +507,8 @@ export const ReplaceInterviewersModal: React.FC<ReplaceInterviewersModalProps> =
   }, [isOpen, interview]);
 
   if (!isOpen || !interview) return null;
+
+  const currentInterviewers = interview.interviewers ?? interview.assignments ?? [];
 
   const toggleInterviewer = (id: string) => {
     setSelectedIds((prev) =>
@@ -558,7 +561,7 @@ export const ReplaceInterviewersModal: React.FC<ReplaceInterviewersModalProps> =
               <label>Select Assigned Interviewers * ({selectedIds.length} selected)</label>
               <div className="interviewer-checklist">
                 {eligibleInterviewers.map((user) => {
-                  const existingAssignment = interview.interviewers.find((i) => i.interviewerId === user.id);
+                  const existingAssignment = currentInterviewers.find((i) => i.interviewerId === user.id);
                   const hasSubmitted = existingAssignment?.feedbackSubmitted;
 
                   return (

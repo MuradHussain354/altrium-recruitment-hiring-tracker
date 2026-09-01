@@ -131,7 +131,8 @@ export const MoveStageModal: React.FC<MoveStageModalProps> = ({
 
   useEffect(() => {
     // Pick the first different stage by default
-    const firstOther = stages.find((s) => s.id !== currentStageId);
+    const safeStages = stages || [];
+    const firstOther = safeStages.find((s) => s.id !== currentStageId);
     setSelectedStageId(firstOther ? firstOther.id : currentStageId);
     setError(null);
     setIsGatingConflict(false);
@@ -139,8 +140,9 @@ export const MoveStageModal: React.FC<MoveStageModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentStage = stages.find((s) => s.id === currentStageId);
-  const targetStage = stages.find((s) => s.id === selectedStageId);
+  const safeStages = stages || [];
+  const currentStage = safeStages.find((s) => s.id === currentStageId);
+  const targetStage = safeStages.find((s) => s.id === selectedStageId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +202,7 @@ export const MoveStageModal: React.FC<MoveStageModalProps> = ({
               }}
               required
             >
-              {stages.map((s) => (
+              {safeStages.map((s) => (
                 <option key={s.id} value={s.id} disabled={s.id === currentStageId}>
                   Stage {s.sequenceOrder}: {s.name} {s.id === currentStageId ? '(Current)' : ''} {s.isGating ? `[Gated: ${s.feedbackRequiredCount} required]` : ''}
                 </option>
@@ -257,9 +259,10 @@ export const AssignTeamModal: React.FC<AssignTeamModalProps> = ({
       setIsFetchingTeams(true);
       hrLookupsApi.listTeams()
         .then((res) => {
-          setTeams(res.data);
-          if (res.data.length > 0) {
-            setSelectedTeamId(currentTeamId || res.data[0].id);
+          const list = res.data || [];
+          setTeams(list);
+          if (list.length > 0) {
+            setSelectedTeamId(currentTeamId || list[0].id);
           }
         })
         .catch((err: any) => {

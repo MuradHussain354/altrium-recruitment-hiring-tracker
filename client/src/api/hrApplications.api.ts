@@ -52,6 +52,16 @@ export const hrApplicationsApi = {
   },
 
   scheduleInterview: async (applicationId: string, data: ScheduleInterviewInput): Promise<ScheduleInterviewResponse> => {
-    return apiClient.post<ScheduleInterviewResponse>(`/applications/${applicationId}/interviews`, data);
+    const res = await apiClient.post<ScheduleInterviewResponse>(`/applications/${applicationId}/interviews`, data);
+    const rawData: any = res?.data;
+    const assignments = Array.isArray(rawData?.assignments)
+      ? rawData.assignments
+      : Array.isArray(rawData?.interviewers)
+      ? rawData.interviewers
+      : [];
+    return {
+      ...res,
+      data: rawData ? { ...rawData, assignments, interviewers: assignments } : rawData
+    };
   }
 };

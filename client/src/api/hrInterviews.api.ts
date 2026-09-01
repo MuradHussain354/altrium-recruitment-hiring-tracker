@@ -18,6 +18,20 @@ export interface InterviewDetailResponse {
   data: Interview;
 }
 
+export const normalizeInterview = (item: any): Interview => {
+  if (!item || typeof item !== 'object') return item;
+  const assignments = Array.isArray(item.assignments)
+    ? item.assignments
+    : Array.isArray(item.interviewers)
+    ? item.interviewers
+    : [];
+  return {
+    ...item,
+    assignments,
+    interviewers: assignments
+  };
+};
+
 export const hrInterviewsApi = {
   listInterviews: async (filters?: InterviewFilters): Promise<InterviewsResponse> => {
     const query = new URLSearchParams();
@@ -27,19 +41,35 @@ export const hrInterviewsApi = {
     if (filters?.to) query.append('to', filters.to);
     const queryString = query.toString();
     const endpoint = queryString ? `/interviews?${queryString}` : '/interviews';
-    return apiClient.get<InterviewsResponse>(endpoint);
+    const res = await apiClient.get<InterviewsResponse>(endpoint);
+    return {
+      ...res,
+      data: Array.isArray(res?.data) ? res.data.map(normalizeInterview) : []
+    };
   },
 
   getInterview: async (id: string): Promise<InterviewDetailResponse> => {
-    return apiClient.get<InterviewDetailResponse>(`/interviews/${id}`);
+    const res = await apiClient.get<InterviewDetailResponse>(`/interviews/${id}`);
+    return {
+      ...res,
+      data: normalizeInterview(res?.data)
+    };
   },
 
   updateInterview: async (id: string, data: UpdateInterviewInput): Promise<InterviewDetailResponse> => {
-    return apiClient.patch<InterviewDetailResponse>(`/interviews/${id}`, data);
+    const res = await apiClient.patch<InterviewDetailResponse>(`/interviews/${id}`, data);
+    return {
+      ...res,
+      data: normalizeInterview(res?.data)
+    };
   },
 
   updateStatus: async (id: string, status: InterviewStatus): Promise<InterviewDetailResponse> => {
-    return apiClient.patch<InterviewDetailResponse>(`/interviews/${id}/status`, { status });
+    const res = await apiClient.patch<InterviewDetailResponse>(`/interviews/${id}/status`, { status });
+    return {
+      ...res,
+      data: normalizeInterview(res?.data)
+    };
   },
 
   replaceInterviewers: async (id: string, data: ReplaceInterviewersInput): Promise<InterviewDetailResponse> => {
@@ -76,6 +106,9 @@ export const hrInterviewsApi = {
       throw errorPayload;
     }
 
-    return resData as InterviewDetailResponse;
+    return {
+      ...resData,
+      data: normalizeInterview(resData?.data)
+    } as InterviewDetailResponse;
   }
 };

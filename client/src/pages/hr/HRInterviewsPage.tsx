@@ -181,20 +181,21 @@ export const HRInterviewsPage: React.FC = () => {
       ) : (
         <div className="interviews-grid">
           {interviews.map((int) => {
-            const hasSubmittedFeedback = int.interviewers.some((i) => i.feedbackSubmitted);
+            const interviewers = int.interviewers ?? int.assignments ?? [];
+            const hasSubmittedFeedback = interviewers.some((i) => Boolean(i?.feedbackSubmitted));
 
             return (
               <div key={int.id} className="interview-schedule-card">
                 <div className="interview-schedule-card__header">
                   <div>
-                    <span className="stage-pill">{int.stage?.name}</span>
+                    <span className="stage-pill">{int.stage?.name || 'Interview Stage'}</span>
                     <h3 className="interview-schedule-card__candidate">
                       <Link to={`/hr/applications/${int.applicationId}`}>
-                        {int.application?.candidate?.name}
+                        {int.application?.candidate?.name || 'Candidate'}
                       </Link>
                     </h3>
                     <span className="interview-schedule-card__position">
-                      {int.application?.position?.title} ({int.application?.position?.department})
+                      {int.application?.position?.title || 'Position'} {int.application?.position?.department ? `(${int.application.position.department})` : ''}
                     </span>
                   </div>
                   <StatusBadge status={int.status} type="interview" />
@@ -218,17 +219,21 @@ export const HRInterviewsPage: React.FC = () => {
                 )}
 
                 <div className="interview-schedule-card__interviewers">
-                  <strong>Assigned Interviewers ({int.interviewers.length}):</strong>
+                  <strong>Assigned Interviewers ({interviewers.length}):</strong>
                   <div className="interviewers-chip-list mt-1">
-                    {int.interviewers.map((ass) => (
-                      <span
-                        key={ass.id}
-                        className={`interviewer-chip ${ass.feedbackSubmitted ? 'interviewer-chip--submitted' : ''}`}
-                      >
-                        {ass.interviewer.name} ({ass.interviewer.role})
-                        {ass.feedbackSubmitted ? ' • ✓ Submitted' : ' • Pending'}
-                      </span>
-                    ))}
+                    {interviewers.length === 0 ? (
+                      <span className="text-muted" style={{ fontSize: '0.8rem' }}>No interviewers assigned</span>
+                    ) : (
+                      interviewers.map((ass) => (
+                        <span
+                          key={ass.id}
+                          className={`interviewer-chip ${ass.feedbackSubmitted ? 'interviewer-chip--submitted' : ''}`}
+                        >
+                          {ass.interviewer?.name || 'Interviewer'} ({ass.interviewer?.role || 'Staff'})
+                          {ass.feedbackSubmitted ? ' • ✓ Submitted' : ' • Pending'}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </div>
 

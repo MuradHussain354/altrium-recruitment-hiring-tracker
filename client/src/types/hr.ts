@@ -156,26 +156,28 @@ export interface Interview {
   createdById?: string;
   createdAt: string;
   updatedAt: string;
-  application: {
+  application?: {
     id: string;
-    candidate: {
+    candidate?: {
       id: string;
       name: string;
       email: string;
       phone?: string | null;
     };
-    position: {
+    position?: {
       id: string;
       title: string;
       department: string;
     };
   };
-  stage: {
+  stage?: {
     id: string;
     name: string;
     sequenceOrder: number;
+    isGating?: boolean;
   };
-  interviewers: InterviewerAssignment[];
+  assignments?: InterviewerAssignment[];
+  interviewers?: InterviewerAssignment[];
 }
 
 export interface InterviewFilters {

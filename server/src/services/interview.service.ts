@@ -25,8 +25,9 @@ const interviewListInclude = {
   },
   assignments: {
     select: {
-      id:          true,
-      assignedAt:  true,
+      id:                true,
+      feedbackSubmitted: true,
+      assignedAt:        true,
       interviewer: { select: { id: true, name: true, role: true } }
     }
   }

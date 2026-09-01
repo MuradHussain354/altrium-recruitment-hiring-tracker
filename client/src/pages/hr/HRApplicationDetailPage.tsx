@@ -286,53 +286,61 @@ export const HRApplicationDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="application-interviews-list">
-                {interviews.map((int) => (
-                  <div key={int.id} className="app-interview-card">
-                    <div className="app-interview-card__header">
-                      <div>
-                        <h4>{int.stage?.name}</h4>
-                        <span className="app-interview-card__time">
-                          🕒 {new Date(int.scheduledAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <StatusBadge status={int.status} type="interview" />
-                    </div>
+                {interviews.map((int) => {
+                  const interviewers = int.interviewers ?? int.assignments ?? [];
 
-                    <div className="app-interview-card__details">
-                      {int.location && <div>📍 <strong>Location:</strong> {int.location}</div>}
-                      {int.meetingLink && (
+                  return (
+                    <div key={int.id} className="app-interview-card">
+                      <div className="app-interview-card__header">
                         <div>
-                          🔗 <strong>Meeting Link:</strong>{' '}
-                          <a href={int.meetingLink} target="_blank" rel="noopener noreferrer" className="text-primary">
-                            {int.meetingLink}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="app-interview-card__interviewers">
-                      <strong>Assigned Interviewers:</strong>
-                      <div className="interviewers-chip-list">
-                        {int.interviewers.map((ass) => (
-                          <span key={ass.id} className="interviewer-chip">
-                            {ass.interviewer.name} ({ass.interviewer.role})
-                            {ass.feedbackSubmitted ? ' • ✓ Submitted' : ' • Pending'}
+                          <h4>{int.stage?.name || 'Interview Stage'}</h4>
+                          <span className="app-interview-card__time">
+                            🕒 {new Date(int.scheduledAt).toLocaleString()}
                           </span>
-                        ))}
+                        </div>
+                        <StatusBadge status={int.status} type="interview" />
+                      </div>
+
+                      <div className="app-interview-card__details">
+                        {int.location && <div>📍 <strong>Location:</strong> {int.location}</div>}
+                        {int.meetingLink && (
+                          <div>
+                            🔗 <strong>Meeting Link:</strong>{' '}
+                            <a href={int.meetingLink} target="_blank" rel="noopener noreferrer" className="text-primary">
+                              {int.meetingLink}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="app-interview-card__interviewers">
+                        <strong>Assigned Interviewers ({interviewers.length}):</strong>
+                        <div className="interviewers-chip-list">
+                          {interviewers.length === 0 ? (
+                            <span className="text-muted" style={{ fontSize: '0.8rem' }}>No interviewers assigned</span>
+                          ) : (
+                            interviewers.map((ass) => (
+                              <span key={ass.id} className="interviewer-chip">
+                                {ass.interviewer?.name || 'Interviewer'} ({ass.interviewer?.role || 'Staff'})
+                                {ass.feedbackSubmitted ? ' • ✓ Submitted' : ' • Pending'}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="app-interview-card__footer">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => setSelectedInterviewForFeedback(int)}
+                        >
+                          💬 View Submitted Feedback
+                        </button>
                       </div>
                     </div>
-
-                    <div className="app-interview-card__footer">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => setSelectedInterviewForFeedback(int)}
-                      >
-                        💬 View Submitted Feedback
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
