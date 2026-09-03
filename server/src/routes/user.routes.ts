@@ -15,6 +15,13 @@ router.get(
   UserController.getEligibleInterviewers
 );
 
+// GET /api/v1/users - List all managed staff (active and inactive) for staff directory (Manager only)
+router.get(
+  '/',
+  requireRole(Role.Manager),
+  UserController.listManagedUsers
+);
+
 // POST /api/v1/users - Manager creates HR or TeamLead account (Manager only)
 router.post(
   '/',

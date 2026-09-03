@@ -20,6 +20,22 @@ export class UserController {
     }
   }
 
+  /**
+   * GET /api/v1/users
+   * Manager only: list all managed HR and TeamLead staff accounts (active and inactive)
+   */
+  static async listManagedUsers(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const users = await UserService.listManagedUsers();
+      res.status(200).json({
+        data: users,
+        count: users.length
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async createManagedUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {

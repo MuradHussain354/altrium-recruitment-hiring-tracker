@@ -22,6 +22,10 @@ export interface TeamsListResponse {
 }
 
 export const managerAccountsApi = {
+  listManagedUsers: async (): Promise<EligibleUsersResponse> => {
+    return apiClient.get<EligibleUsersResponse>('/users');
+  },
+
   listEligibleUsers: async (): Promise<EligibleUsersResponse> => {
     return apiClient.get<EligibleUsersResponse>('/users/interviewers');
   },

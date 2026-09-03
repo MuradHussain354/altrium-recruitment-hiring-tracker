@@ -12,21 +12,21 @@ export const ManagerAccountsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchActiveUsers = async () => {
+  const fetchUsers = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await managerAccountsApi.listEligibleUsers();
+      const res = await managerAccountsApi.listManagedUsers();
       setUsers(res.data);
       setIsLoading(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to load active user directory.');
+      setError(err.message || 'Failed to load staff directory.');
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchActiveUsers();
+    fetchUsers();
   }, []);
 
   return (
@@ -38,14 +38,14 @@ export const ManagerAccountsPage: React.FC = () => {
             <Users color="var(--primary)" size={24} /> User Account Management
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
-            Provision staff accounts and manage active user activation statuses.
+            Provision staff accounts and manage user activation statuses.
           </p>
         </div>
       </div>
 
       {/* Account Creation Form */}
       <div style={{ marginBottom: '32px' }}>
-        <AccountCreateForm onAccountCreated={fetchActiveUsers} />
+        <AccountCreateForm onAccountCreated={fetchUsers} />
       </div>
 
       {/* Account Directory */}
@@ -53,16 +53,16 @@ export const ManagerAccountsPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              Active Staff Directory
+              Staff Directory
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               <Info size={14} color="var(--accent-cyan)" />
-              <span>Only active HR and Team Lead accounts are available in this directory. Deactivated accounts are removed from interviewer listings.</span>
+              <span>Active and inactive HR/Team Lead accounts are shown. Deactivated accounts cannot log in or be selected for interviews. Managers can reactivate them from this directory.</span>
             </div>
           </div>
 
           <button
-            onClick={fetchActiveUsers}
+            onClick={fetchUsers}
             className="btn btn-secondary"
             disabled={isLoading}
             style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -90,11 +90,11 @@ export const ManagerAccountsPage: React.FC = () => {
 
         {isLoading ? (
           <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Loading active staff directory...
+            Loading staff directory...
           </div>
         ) : users.length === 0 ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-subtle)' }}>
-            No active HR or Team Lead accounts found in the directory.
+            No HR or Team Lead accounts found in the directory.
           </div>
         ) : (
           <div style={{ borderRadius: '8px', border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
@@ -131,7 +131,7 @@ export const ManagerAccountsPage: React.FC = () => {
                       <AccountStatusToggle
                         userItem={u}
                         currentUserId={user?.id}
-                        onStatusChanged={fetchActiveUsers}
+                        onStatusChanged={fetchUsers}
                       />
                     </td>
                   </tr>

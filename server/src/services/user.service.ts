@@ -43,6 +43,35 @@ export class UserService {
     });
   }
 
+  /**
+   * List all managed staff accounts (HR & TeamLead) for Manager staff directory.
+   * Includes both active and inactive accounts.
+   * Excludes Managers, passwordHash, and internal tokens.
+   * Ordered alphabetically by name ASC.
+   * Read-only: zero audit logs created.
+   */
+  static async listManagedUsers() {
+    return prisma.user.findMany({
+      where: {
+        role: {
+          in: [Role.HR, Role.TeamLead]
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        teamId: true,
+        createdAt: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+  }
+
   static async createManagedUser(
     managerId: string,
     input: CreateManagedUserInput
