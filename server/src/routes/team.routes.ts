@@ -13,4 +13,12 @@ router.get(
   TeamController.listTeams
 );
 
+// POST /api/v1/teams - Create a new team (Manager only)
+router.post(
+  '/',
+  requireAuth,
+  requireRole(Role.Manager),
+  TeamController.createTeam
+);
+
 export default router;

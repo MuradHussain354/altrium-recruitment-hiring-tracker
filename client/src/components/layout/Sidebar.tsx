@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext';
 import {
   LayoutDashboard,
   Users,
+  Users2,
   BarChart3,
   Briefcase,
   FileText,
@@ -62,6 +63,13 @@ export const Sidebar: React.FC = () => {
             >
               <Users size={18} />
               <span>User Accounts</span>
+            </NavLink>
+            <NavLink
+              to="/manager/teams"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Users2 size={18} />
+              <span>Teams</span>
             </NavLink>
             <NavLink
               to="/manager/notifications"

@@ -26,6 +26,7 @@ import { ManagerPositionsReportPage } from './pages/manager/ManagerPositionsRepo
 import { ManagerPipelineReportPage } from './pages/manager/ManagerPipelineReportPage';
 import { ManagerInterviewsReportPage } from './pages/manager/ManagerInterviewsReportPage';
 import { ManagerAccountsPage } from './pages/manager/ManagerAccountsPage';
+import { ManagerTeamsPage } from './pages/manager/ManagerTeamsPage';
 import { ManagerNotificationsPage } from './pages/manager/ManagerNotificationsPage';
 
 // TeamLead Portal Pages
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="/manager/reports/pipeline" element={<ManagerPipelineReportPage />} />
             <Route path="/manager/reports/interviews" element={<ManagerInterviewsReportPage />} />
             <Route path="/manager/accounts" element={<ManagerAccountsPage />} />
+            <Route path="/manager/teams" element={<ManagerTeamsPage />} />
             <Route path="/manager/notifications" element={<ManagerNotificationsPage />} />
           </Route>
 
