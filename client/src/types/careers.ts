@@ -31,6 +31,8 @@ export interface PublicApplicationInput {
   name: string;
   email: string;
   phone?: string;
+  linkedInUrl?: string;
+  notes?: string;
   resume?: File;
   resumeUrl?: string;
   positionId: string;
@@ -44,6 +46,7 @@ export interface ApplicationCandidate {
   email: string;
   phone: string | null;
   resumeUrl: string | null;
+  linkedInUrl?: string | null;
   source: string;
 }
 
@@ -66,6 +69,7 @@ export interface SubmittedApplication {
   positionId: string;
   currentStageId: string;
   status: string;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
   candidate: ApplicationCandidate;
@@ -77,4 +81,53 @@ export interface SubmittedApplication {
 export interface PublicApplicationResponse {
   message: string;
   data: SubmittedApplication;
+}
+
+// ==========================================
+// TRACK MY APPLICATION TYPES
+// ==========================================
+
+export interface TrackApplicationInput {
+  email: string;
+  referenceId: string;
+}
+
+export interface TrackedApplication {
+  referenceId: string;
+  positionTitle: string;
+  department: string;
+  status: 'InProgress' | 'Hired' | 'Rejected' | 'OnHold' | string;
+  currentStageName: string;
+  currentStageSequenceOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrackApplicationResponse {
+  message: string;
+  data: TrackedApplication;
+}
+
+// ==========================================
+// JOB ALERT SUBSCRIPTION TYPES
+// ==========================================
+
+export interface JobAlertSubscriptionInput {
+  email: string;
+  department?: string;
+  keyword?: string;
+}
+
+export interface JobAlertSubscription {
+  id: string;
+  email: string;
+  department: string | null;
+  keyword: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface JobAlertSubscriptionResponse {
+  message: string;
+  data: JobAlertSubscription;
 }

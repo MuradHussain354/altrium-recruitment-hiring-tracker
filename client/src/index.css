@@ -2475,3 +2475,1430 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+/* ==========================================================================
+   SPRINT 2 BATCH 1B — PUBLIC SITE STYLES
+   ========================================================================== */
+
+/* Shared Inline Link */
+.inline-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: opacity var(--transition-fast);
+}
+
+.inline-link:hover {
+  opacity: 0.85;
+}
+
+/* Character Counter */
+.char-count {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   1. Home Page Components
+   -------------------------------------------------------------------------- */
+.home-section {
+  margin-bottom: 72px;
+}
+
+.home-section__header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 40px;
+}
+
+.home-section__title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.home-section__subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.home-hero__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Home Pillars */
+.home-pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.home-pillar {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: transform var(--transition-normal), border-color var(--transition-normal);
+}
+
+.home-pillar:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.home-pillar__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.home-pillar__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.home-pillar__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Home What We Do */
+.home-what-we-do {
+  padding: 48px;
+}
+
+.home-what-we-do__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.home-what-we-do__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-domains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.home-domain-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+}
+
+.home-what-we-do__visual {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-visual-stat {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.home-visual-stat strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.home-visual-stat__label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Home Culture */
+.home-culture {
+  padding: 48px;
+}
+
+.home-culture__inner {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.home-culture__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-culture-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-culture-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.925rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.home-culture-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.home-culture__aside {
+  padding: 32px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.home-culture__aside-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.home-culture__aside h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.home-culture__aside p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Home CTA Banner */
+.home-cta-banner {
+  padding: 48px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-lg);
+}
+
+.home-cta-banner__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.home-cta-banner__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.home-cta-banner__subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 560px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.home-cta-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. About Page Components
+   -------------------------------------------------------------------------- */
+.about-page {
+  padding-bottom: 80px;
+}
+
+.about-section {
+  margin-bottom: 64px;
+}
+
+.about-section__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.about-section__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.about-section__title--center {
+  text-align: center;
+}
+
+.about-section__subtitle--center {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 36px;
+  color: var(--text-muted);
+  font-size: 0.975rem;
+  line-height: 1.6;
+}
+
+.about-section__text {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.about-section__text:last-child {
+  margin-bottom: 0;
+}
+
+/* Mission / Vision Grid */
+.about-mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.about-mv-card {
+  padding: 32px;
+}
+
+.about-mv-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.about-mv-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.about-mv-card__text {
+  font-size: 0.925rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Values Grid */
+.about-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.about-value-card {
+  padding: 24px;
+  transition: transform var(--transition-normal);
+}
+
+.about-value-card:hover {
+  transform: translateY(-3px);
+}
+
+.about-value-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.about-value-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.about-value-card__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Team Roles */
+.about-team-roles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.about-team-role {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.about-team-role strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.about-team-role span {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  display: block;
+}
+
+/* Culture Grid */
+.about-culture-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.about-culture-card {
+  padding: 28px;
+}
+
+.about-culture-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 16px;
+}
+
+.about-culture-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.about-culture-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.about-culture-item svg {
+  color: var(--color-success);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Why Grid */
+.about-why-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.about-why-card {
+  padding: 24px;
+}
+
+.about-why-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.about-why-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.about-why-card__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* About CTA */
+.about-cta {
+  padding: 48px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(30, 41, 59, 0.6) 100%);
+}
+
+.about-cta__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 12px;
+}
+
+.about-cta__text {
+  font-size: 0.975rem;
+  color: var(--text-muted);
+  max-width: 540px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   3. Contact Page Components
+   -------------------------------------------------------------------------- */
+.contact-page {
+  padding-bottom: 80px;
+}
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.contact-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.contact-aside-card {
+  padding: 28px;
+}
+
+.contact-aside-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.contact-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.contact-detail-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.contact-detail-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.contact-detail-value {
+  font-size: 0.925rem;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.contact-aside-note {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.contact-aside-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 16px;
+}
+
+.contact-aside-tip svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contact-quicklinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-quicklink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.contact-quicklink:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: var(--primary);
+}
+
+.contact-quicklink svg {
+  color: var(--text-subtle);
+  transition: transform var(--transition-fast);
+}
+
+.contact-quicklink:hover svg {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+/* Contact Form Card */
+.contact-form-card {
+  padding: 32px;
+}
+
+.contact-form-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.contact-form-card__submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.contact-form-disclosure {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.contact-form-disclosure svg {
+  color: var(--color-warning);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contact-form-submitted {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.contact-form-submitted__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.contact-form-submitted h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.contact-form-submitted p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 440px;
+  margin: 0 auto 16px;
+  line-height: 1.6;
+}
+
+.contact-form-submitted__note {
+  font-size: 0.825rem;
+  color: var(--text-subtle);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  max-width: 440px;
+  margin: 0 auto 24px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Track Application Page Components
+   -------------------------------------------------------------------------- */
+.track-page {
+  padding-bottom: 80px;
+}
+
+.track-page__content {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.track-form-card {
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.track-form-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.track-form-card__hint {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.track-form-card__submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.track-not-found {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  margin-bottom: 24px;
+}
+
+.track-not-found svg {
+  color: var(--color-danger);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.track-not-found strong {
+  display: block;
+  font-size: 0.925rem;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.track-not-found p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Result Card */
+.track-result-card {
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.track-result-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+
+.track-result-card__position {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.track-result-card__dept {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.track-result-card__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.track-result-card__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse-slow 2s infinite ease-in-out;
+}
+
+.track-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.track-result-item {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.track-result-item__label {
+  font-size: 0.775rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.track-result-item__value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.track-result-item__sub {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.track-result-item__ref {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.825rem;
+  word-break: break-all;
+}
+
+.track-result-card__note {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+}
+
+.track-result-card__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.track-page__help {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.track-page__help-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.track-page__help p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Job Alert Section
+   -------------------------------------------------------------------------- */
+.job-alert-section {
+  padding: 44px;
+  margin-top: 64px;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(30, 41, 59, 0.6) 100%);
+}
+
+.job-alert-section__header {
+  text-align: center;
+  max-width: 580px;
+  margin: 0 auto 32px;
+}
+
+.job-alert-section__icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.job-alert-section__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.job-alert-section__subtitle {
+  font-size: 0.925rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.job-alert-form {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.job-alert-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.job-alert-form__submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.job-alert-form__privacy {
+  font-size: 0.775rem;
+  color: var(--text-subtle);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+.job-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.job-alert-error svg {
+  flex-shrink: 0;
+}
+
+.job-alert-success {
+  text-align: center;
+  padding: 24px;
+}
+
+.job-alert-success__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.job-alert-success__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.job-alert-success__text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 440px;
+  margin: 0 auto 20px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   6. Careers Page Enhancements
+   -------------------------------------------------------------------------- */
+.careers-track-banner {
+  padding: 16px 24px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.careers-track-banner__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.careers-track-banner__text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.careers-track-banner__text strong {
+  color: var(--text-main);
+}
+
+.careers-track-banner__btn {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+/* Hiring Process Section */
+.careers-process-section {
+  margin-top: 72px;
+}
+
+.careers-process-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.careers-process-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.careers-process-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.careers-process-card__step {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: rgba(99, 102, 241, 0.4);
+  letter-spacing: -0.02em;
+}
+
+.careers-process-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.careers-process-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.careers-process-card__desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Why Work at Altrium Section */
+.careers-why-section {
+  margin-top: 72px;
+}
+
+.careers-why-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.careers-why-card {
+  padding: 24px;
+  transition: transform var(--transition-normal);
+}
+
+.careers-why-card:hover {
+  transform: translateY(-3px);
+}
+
+.careers-why-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.careers-why-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.careers-why-card__desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7. FAQ Page Components
+   -------------------------------------------------------------------------- */
+.faq-page {
+  padding-bottom: 80px;
+}
+
+.faq-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 800px;
+  margin: 0 auto 56px;
+}
+
+.faq-category__header {
+  margin-bottom: 20px;
+}
+
+.faq-category__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.faq-category__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.faq-item--open {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.faq-item__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-main);
+}
+
+.faq-item__trigger:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.faq-item__trigger-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.faq-item__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.faq-item__icon--rotated {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.faq-item__body {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.2);
+}
+
+.faq-item__body-inner {
+  padding: 18px 24px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.faq-item__body-inner p:last-child {
+  margin-bottom: 0;
+}
+
+/* FAQ CTA */
+.faq-cta {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(30, 41, 59, 0.6) 100%);
+}
+
+.faq-cta__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.faq-cta__desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 500px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.faq-cta__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Responsive Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .home-pillars {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .careers-process-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .careers-why-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-team-roles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-what-we-do__inner,
+  .home-culture__inner,
+  .contact-layout,
+  .about-mission-grid,
+  .about-culture-grid,
+  .about-why-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .home-what-we-do,
+  .home-culture,
+  .home-cta-banner,
+  .about-mv-card,
+  .about-cta,
+  .contact-form-card,
+  .track-form-card,
+  .track-result-card,
+  .job-alert-section {
+    padding: 24px;
+  }
+
+  .home-cta-banner__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-cta-banner__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .home-cta-banner__actions a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .home-pillars,
+  .about-values-grid,
+  .careers-process-steps,
+  .careers-why-grid,
+  .about-team-roles,
+  .track-result-grid,
+  .job-alert-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .careers-track-banner__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .careers-track-banner__btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .track-result-card__header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .track-result-card__actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .faq-cta__actions {
+    flex-direction: column;
+  }
+
+  .faq-cta__actions a {
+    width: 100%;
+    justify-content: center;
+  }
+}

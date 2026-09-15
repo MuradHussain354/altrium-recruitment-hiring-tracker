@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { User, Mail, Phone, FileText, Upload, X, Send, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, FileText, Upload, X, Send, Loader2, Linkedin, MessageSquare } from 'lucide-react';
 import { PublicPosition, PublicApplicationInput, PublicApplicationResponse } from '../../types/careers';
 import { submitApplication } from '../../api/publicCareers.api';
 import { ApiErrorResponse } from '../../types/auth';
@@ -14,6 +14,8 @@ interface FieldErrors {
   name?: string;
   email?: string;
   file?: string;
+  linkedInUrl?: string;
+  notes?: string;
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -56,6 +58,8 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [linkedInUrl, setLinkedInUrl] = useState('');
+  const [notes, setNotes] = useState('');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -115,6 +119,20 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
       errors.email = 'Please enter a valid email address.';
     }
 
+    if (linkedInUrl.trim()) {
+      const trimmedUrl = linkedInUrl.trim();
+      const urlPattern = /^https?:\/\/.+/i;
+      if (!urlPattern.test(trimmedUrl)) {
+        errors.linkedInUrl = 'LinkedIn URL must start with http:// or https://';
+      } else if (trimmedUrl.length > 500) {
+        errors.linkedInUrl = 'LinkedIn URL must not exceed 500 characters.';
+      }
+    }
+
+    if (notes.length > 2000) {
+      errors.notes = 'Application note must not exceed 2000 characters.';
+    }
+
     if (!cvFile) {
       errors.file = 'Please select your CV / Resume file.';
     }
@@ -137,6 +155,8 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
     };
 
     if (phone.trim()) payload.phone = phone.trim();
+    if (linkedInUrl.trim()) payload.linkedInUrl = linkedInUrl.trim();
+    if (notes.trim()) payload.notes = notes.trim();
 
     setIsSubmitting(true);
     try {
@@ -227,6 +247,32 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
         </div>
       </div>
 
+      {/* LinkedIn Profile (optional) */}
+      <div className="form-group">
+        <label htmlFor="app-linkedin" className="form-label">
+          LinkedIn Profile <span className="form-optional">(optional)</span>
+        </label>
+        <div className="input-icon-wrapper">
+          <Linkedin size={16} className="input-icon" aria-hidden="true" />
+          <input
+            id="app-linkedin"
+            type="url"
+            className={`input-field input-field--icon-left${fieldErrors.linkedInUrl ? ' input-field--error' : ''}`}
+            placeholder="https://www.linkedin.com/in/yourprofile"
+            value={linkedInUrl}
+            onChange={(e) => {
+              setLinkedInUrl(e.target.value);
+              setFieldErrors((prev) => ({ ...prev, linkedInUrl: undefined }));
+            }}
+            disabled={isSubmitting}
+            autoComplete="url"
+          />
+        </div>
+        {fieldErrors.linkedInUrl && (
+          <p id="app-linkedin-error" className="field-error" role="alert">{fieldErrors.linkedInUrl}</p>
+        )}
+      </div>
+
       {/* CV / Resume File Upload */}
       <div className="form-group">
         <label htmlFor="app-resume-file" className="form-label">
@@ -285,6 +331,37 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ position, onSu
           <p id="app-resume-helper" className="form-helper">
             Accepted formats: PDF, DOC, DOCX • Maximum size: 5 MB
           </p>
+        )}
+      </div>
+
+      {/* Application Note (optional) */}
+      <div className="form-group">
+        <label htmlFor="app-notes" className="form-label">
+          Additional Message <span className="form-optional">(optional)</span>
+        </label>
+        <div style={{ position: 'relative' }}>
+          <MessageSquare size={16} style={{ position: 'absolute', top: '12px', left: '12px', color: 'var(--text-subtle)', pointerEvents: 'none' }} aria-hidden="true" />
+          <textarea
+            id="app-notes"
+            className={`input-field${fieldErrors.notes ? ' input-field--error' : ''}`}
+            placeholder="Share anything you'd like us to know about your application, motivation, or relevant experience…"
+            value={notes}
+            onChange={(e) => {
+              setNotes(e.target.value);
+              setFieldErrors((prev) => ({ ...prev, notes: undefined }));
+            }}
+            disabled={isSubmitting}
+            maxLength={2100}
+            rows={4}
+            style={{ paddingLeft: '40px', resize: 'vertical' }}
+            aria-describedby="app-notes-count"
+          />
+        </div>
+        <p id="app-notes-count" className="form-helper" style={{ textAlign: 'right', color: notes.length > 1900 ? 'var(--accent-amber)' : 'var(--text-subtle)' }}>
+          {notes.length} / 2000 characters
+        </p>
+        {fieldErrors.notes && (
+          <p id="app-notes-error" className="field-error" role="alert">{fieldErrors.notes}</p>
         )}
       </div>
 

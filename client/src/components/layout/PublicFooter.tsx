@@ -17,9 +17,11 @@ export const PublicFooter: React.FC = () => {
 
         <nav className="footer-links" aria-label="Footer navigation">
           <Link to="/careers" className="footer-link">Careers</Link>
+          <Link to="/track" className="footer-link">Track Application</Link>
+          <Link to="/faq" className="footer-link">FAQ</Link>
           <Link to="/about" className="footer-link">About</Link>
           <Link to="/contact" className="footer-link">Contact</Link>
-          <Link to="/login" className="footer-link">Login</Link>
+          <Link to="/login" className="footer-link">Internal Login</Link>
         </nav>
 
         <p className="footer-copy">
