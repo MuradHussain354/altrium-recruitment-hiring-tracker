@@ -5,6 +5,8 @@ import { ShieldCheck, Menu, X, LogIn } from 'lucide-react';
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Careers', to: '/careers' },
+  { label: 'Track Application', to: '/track' },
+  { label: 'FAQ', to: '/faq' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];

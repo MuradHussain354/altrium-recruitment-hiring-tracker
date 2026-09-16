@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApplicationService } from '../services/application.service';
-import { candidateApplicationSchema } from '../schemas/application.schema';
+import { candidateApplicationSchema, trackApplicationSchema } from '../schemas/application.schema';
 import { StorageService } from '../services/storage.service';
 import { AppError } from '../utils/errors';
 
@@ -53,6 +53,28 @@ export class ApplicationController {
           console.warn('[ApplicationController] Failed to cleanup orphaned upload:', cleanupErr);
         }
       }
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/public/applications/track (Public Application Tracking)
+   */
+  static async trackApplication(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const parsed = trackApplicationSchema.safeParse(req.body);
+      if (!parsed.success) {
+        const message = parsed.error.errors.map((e) => e.message).join(', ');
+        throw new AppError(400, message);
+      }
+
+      const trackingDetails = await ApplicationService.trackApplication(parsed.data);
+
+      res.status(200).json({
+        message: 'Application tracking details retrieved successfully',
+        data: trackingDetails
+      });
+    } catch (error) {
       next(error);
     }
   }

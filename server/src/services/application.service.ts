@@ -1,7 +1,7 @@
 import prisma from '../config/prisma';
 import { ApplicationStatus, PositionStatus, Prisma } from '@prisma/client';
 import { AppError } from '../utils/errors';
-import { CandidateApplicationInput } from '../schemas/application.schema';
+import { CandidateApplicationInput, TrackApplicationInput } from '../schemas/application.schema';
 
 export class ApplicationService {
   /**
@@ -52,7 +52,16 @@ export class ApplicationService {
               email: normalizedEmail,
               phone: input.phone,
               resumeUrl: input.resumeUrl,
+              linkedInUrl: input.linkedInUrl,
               source: input.source
+            }
+          });
+        } else if (input.linkedInUrl && !candidate.linkedInUrl) {
+          // If candidate exists without linkedInUrl and provided in this application, update it
+          candidate = await tx.candidate.update({
+            where: { id: candidate.id },
+            data: {
+              linkedInUrl: input.linkedInUrl
             }
           });
         }
@@ -65,7 +74,8 @@ export class ApplicationService {
             candidateId: candidate.id,
             positionId: input.positionId,
             currentStageId: initialStage.id,
-            status: ApplicationStatus.InProgress
+            status: ApplicationStatus.InProgress,
+            notes: input.notes
           },
           include: {
             candidate: {
@@ -89,5 +99,56 @@ export class ApplicationService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Track Application Status (Public Candidate Safe Tracking)
+   * Both conditions — referenceId (application.id) AND candidate normalized email —
+   * are enforced in the database WHERE clause. The row is never retrieved unless
+   * both match, eliminating any application-layer timing or enumeration risk.
+   * Returns strictly sanitized public snapshot of application progress.
+   */
+  static async trackApplication(input: TrackApplicationInput) {
+    const normalizedEmail = input.email.toLowerCase().trim();
+
+    // Both referenceId and candidate.email are matched in the DB WHERE clause.
+    // candidate.email is NOT selected in the return payload — it is only used as a filter.
+    const application = await prisma.application.findFirst({
+      where: {
+        id: input.referenceId,
+        candidate: {
+          email: normalizedEmail
+        }
+      },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        position: {
+          select: { title: true, department: true }
+        },
+        currentStage: {
+          select: { name: true, sequenceOrder: true }
+        }
+      }
+    });
+
+    // Generic not-found: never reveal which condition failed
+    if (!application) {
+      throw new AppError(404, 'Application not found with the provided details.');
+    }
+
+    // Return ONLY candidate-safe information
+    return {
+      referenceId: application.id,
+      positionTitle: application.position.title,
+      department: application.position.department,
+      status: application.status,
+      currentStageName: application.currentStage.name,
+      currentStageSequenceOrder: application.currentStage.sequenceOrder,
+      createdAt: application.createdAt,
+      updatedAt: application.updatedAt
+    };
   }
 }

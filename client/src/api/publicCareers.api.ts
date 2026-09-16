@@ -5,6 +5,10 @@ import {
   PublicPositionDetailResponse,
   PublicApplicationInput,
   PublicApplicationResponse,
+  TrackApplicationInput,
+  TrackApplicationResponse,
+  JobAlertSubscriptionInput,
+  JobAlertSubscriptionResponse,
 } from '../types/careers';
 
 /**
@@ -63,6 +67,14 @@ export async function submitApplication(
     formData.append('phone', input.phone.trim());
   }
 
+  if (input.linkedInUrl && input.linkedInUrl.trim() !== '') {
+    formData.append('linkedInUrl', input.linkedInUrl.trim());
+  }
+
+  if (input.notes && input.notes.trim() !== '') {
+    formData.append('notes', input.notes.trim());
+  }
+
   if (input.resume) {
     formData.append('resume', input.resume);
   } else if (input.resumeUrl && input.resumeUrl.trim() !== '') {
@@ -70,4 +82,43 @@ export async function submitApplication(
   }
 
   return apiClient.post<PublicApplicationResponse>('/public/applications', formData);
+}
+
+/**
+ * Track an existing application with email and reference ID (UUID).
+ * Returns safe public snapshot only.
+ * Throws 404 on mismatched credentials.
+ *
+ * POST /api/v1/public/applications/track
+ */
+export async function trackApplication(
+  input: TrackApplicationInput
+): Promise<TrackApplicationResponse> {
+  return apiClient.post<TrackApplicationResponse>('/public/applications/track', {
+    email: input.email.trim(),
+    referenceId: input.referenceId.trim(),
+  });
+}
+
+/**
+ * Subscribe to new job openings alerts.
+ *
+ * POST /api/v1/public/job-alerts
+ */
+export async function subscribeJobAlert(
+  input: JobAlertSubscriptionInput
+): Promise<JobAlertSubscriptionResponse> {
+  const payload: Record<string, string> = {
+    email: input.email.trim(),
+  };
+
+  if (input.department && input.department.trim()) {
+    payload.department = input.department.trim();
+  }
+
+  if (input.keyword && input.keyword.trim()) {
+    payload.keyword = input.keyword.trim();
+  }
+
+  return apiClient.post<JobAlertSubscriptionResponse>('/public/job-alerts', payload);
 }

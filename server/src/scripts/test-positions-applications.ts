@@ -32,7 +32,8 @@ async function runPositionsApplicationsTests() {
   }
 
   try {
-    // 0. Clean up test database tables
+    // 0. Clean up test database tables in dependency-safe order
+    await prisma.notification.deleteMany({});
     await prisma.feedbackCriterionScore.deleteMany({});
     await prisma.feedback.deleteMany({});
     await prisma.interviewerAssignment.deleteMany({});
@@ -41,7 +42,10 @@ async function runPositionsApplicationsTests() {
     await prisma.candidate.deleteMany({});
     await prisma.stage.deleteMany({});
     await prisma.position.deleteMany({});
+    await prisma.pipelineTemplate.deleteMany({});
     await prisma.auditLog.deleteMany({});
+    await prisma.user.updateMany({ data: { teamId: null } });
+    await prisma.team.deleteMany({});
     await prisma.user.deleteMany({});
 
     // 1. Bootstrap System Manager and HR users
@@ -234,6 +238,7 @@ async function runPositionsApplicationsTests() {
   } finally {
     // Clean up created test entities to prevent FK conflicts in legacy test scripts
     try {
+      await prisma.notification.deleteMany({});
       await prisma.feedbackCriterionScore.deleteMany({});
       await prisma.feedback.deleteMany({});
       await prisma.interviewerAssignment.deleteMany({});
@@ -242,6 +247,11 @@ async function runPositionsApplicationsTests() {
       await prisma.candidate.deleteMany({});
       await prisma.stage.deleteMany({});
       await prisma.position.deleteMany({});
+      await prisma.pipelineTemplate.deleteMany({});
+      await prisma.auditLog.deleteMany({});
+      await prisma.user.updateMany({ data: { teamId: null } });
+      await prisma.team.deleteMany({});
+      await prisma.user.deleteMany({});
     } catch (_) {}
     await prisma.$disconnect();
   }

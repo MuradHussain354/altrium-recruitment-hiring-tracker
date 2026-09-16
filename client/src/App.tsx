@@ -14,6 +14,8 @@ import CareersPage from './pages/public/CareersPage';
 import JobDetailPage from './pages/public/JobDetailPage';
 import ApplicationPage from './pages/public/ApplicationPage';
 import ApplicationSuccessPage from './pages/public/ApplicationSuccessPage';
+import FAQPage from './pages/public/FAQPage';
+import TrackApplicationPage from './pages/public/TrackApplicationPage';
 
 // Auth & Error Pages
 import LoginPage from './pages/LoginPage';
@@ -55,6 +57,8 @@ export default function App() {
         <Route path="/careers/:positionId" element={<JobDetailPage />} />
         <Route path="/careers/:positionId/apply" element={<ApplicationPage />} />
         <Route path="/application-success" element={<ApplicationSuccessPage />} />
+        <Route path="/track" element={<TrackApplicationPage />} />
+        <Route path="/faq" element={<FAQPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>

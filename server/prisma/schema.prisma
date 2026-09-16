@@ -82,14 +82,14 @@ model User {
   createdAt    DateTime @default(now())
 
   // Reverse relations
-  createdUsers           User[]             @relation("UserCreator")
-  createdTeams           Team[]             @relation("TeamCreator")
-  createdTemplates       PipelineTemplate[] @relation("TemplateCreator")
-  createdPositions       Position[]         @relation("PositionCreator")
-  createdInterviews      Interview[]        @relation("CreatedInterviews")
+  createdUsers           User[]                  @relation("UserCreator")
+  createdTeams           Team[]                  @relation("TeamCreator")
+  createdTemplates       PipelineTemplate[]      @relation("TemplateCreator")
+  createdPositions       Position[]              @relation("PositionCreator")
+  createdInterviews      Interview[]             @relation("CreatedInterviews")
   interviewerAssignments InterviewerAssignment[]
-  feedbacks              Feedback[]         @relation("FeedbackInterviewer")
-  auditLogs              AuditLog[]         @relation("AuditActor")
+  feedbacks              Feedback[]              @relation("FeedbackInterviewer")
+  auditLogs              AuditLog[]              @relation("AuditActor")
 }
 
 // 2. Team
@@ -150,13 +150,14 @@ model Stage {
 
 // 6. Candidate
 model Candidate {
-  id        String          @id @default(uuid())
-  name      String
-  email     String
-  phone     String?
-  resumeUrl String?
-  source    CandidateSource @default(Direct)
-  createdAt DateTime        @default(now())
+  id          String          @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  resumeUrl   String?
+  linkedInUrl String?
+  source      CandidateSource @default(Direct)
+  createdAt   DateTime        @default(now())
 
   applications Application[]
 }
@@ -174,6 +175,7 @@ model Application {
   assignedTeam   Team?             @relation(fields: [assignedTeamId], references: [id])
   status         ApplicationStatus @default(InProgress)
   statusReason   String?
+  notes          String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
@@ -215,14 +217,14 @@ model InterviewerAssignment {
 
 // 10. Feedback
 model Feedback {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   interviewId   String
   interview     Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   interviewerId String
-  interviewer   User     @relation("FeedbackInterviewer", fields: [interviewerId], references: [id])
-  overallRating Decimal? @db.Decimal(3, 1)
+  interviewer   User      @relation("FeedbackInterviewer", fields: [interviewerId], references: [id])
+  overallRating Decimal?  @db.Decimal(3, 1)
   comments      String?
-  submittedAt   DateTime @default(now())
+  submittedAt   DateTime  @default(now())
 
   criterionScores FeedbackCriterionScore[]
 
@@ -262,6 +264,16 @@ model AuditLog {
   timestamp  DateTime @default(now())
 }
 
+// 14. JobAlertSubscription
+model JobAlertSubscription {
+  id               String   @id @default(uuid())
+  email            String
+  department       String?
+  keyword          String?
+  unsubscribeToken String   @unique @default(uuid())
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
 
-
-
+  @@index([email])
+  @@index([isActive])
+}
