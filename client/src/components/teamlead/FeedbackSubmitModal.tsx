@@ -72,15 +72,20 @@ export const FeedbackSubmitModal: React.FC<FeedbackSubmitModalProps> = ({
             setIsSubmitting(false);
             return;
           }
-          if (c.score < 0 || c.score > 99.99) {
-            setError(`Criterion #${i + 1} score must be between 0 and 99.99.`);
+          if (c.score < 1.0 || c.score > 5.0) {
+            setError(`Criterion #${i + 1} score must be between 1.0 and 5.0.`);
+            setIsSubmitting(false);
+            return;
+          }
+          if (c.weight !== undefined && (c.weight <= 0 || c.weight > 10)) {
+            setError(`Criterion #${i + 1} weight must be a positive number up to 10.0.`);
             setIsSubmitting(false);
             return;
           }
         }
         payload.criterionScores = criteria.map((c) => ({
           criterionName: c.criterionName.trim(),
-          weight: c.weight !== undefined ? Number(c.weight) : 1.0,
+          weight: c.weight !== undefined && c.weight > 0 ? Number(c.weight) : 1.0,
           score: Number(c.score)
         }));
       }
@@ -222,58 +227,64 @@ export const FeedbackSubmitModal: React.FC<FeedbackSubmitModalProps> = ({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {criteria.map((c, idx) => (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px 12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-subtle)'
-                  }}>
-                    <input
-                      type="text"
-                      placeholder="Criterion Name (e.g. React/TypeScript)"
-                      value={c.criterionName}
-                      onChange={(e) => handleCriterionChange(idx, 'criterionName', e.target.value)}
-                      className="input-field"
-                      style={{ flex: 2, fontSize: '0.85rem' }}
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="99.99"
-                      placeholder="Score"
-                      value={c.score}
-                      onChange={(e) => handleCriterionChange(idx, 'score', parseFloat(e.target.value) || 0)}
-                      className="input-field"
-                      style={{ width: '80px', fontSize: '0.85rem' }}
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="99.99"
-                      placeholder="Weight"
-                      value={c.weight}
-                      onChange={(e) => handleCriterionChange(idx, 'weight', parseFloat(e.target.value) || 1.0)}
-                      className="input-field"
-                      style={{ width: '80px', fontSize: '0.85rem' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCriterion(idx)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--accent-amber)',
-                        cursor: 'pointer',
-                        padding: '4px'
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <div key={idx} className="criterion-row-responsive">
+                    <div className="criterion-row-responsive__name">
+                      <input
+                        type="text"
+                        placeholder="Criterion Name (e.g. System Design)"
+                        value={c.criterionName}
+                        onChange={(e) => handleCriterionChange(idx, 'criterionName', e.target.value)}
+                        className="input-field"
+                        style={{ width: '100%', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div className="criterion-row-responsive__values">
+                      <div className="criterion-row-responsive__score">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="1"
+                          max="5"
+                          placeholder="Score (1-5)"
+                          value={c.score || ''}
+                          onChange={(e) => handleCriterionChange(idx, 'score', parseFloat(e.target.value) || 0)}
+                          className="input-field"
+                          style={{ width: '100%', fontSize: '0.85rem' }}
+                          title="Score between 1.0 and 5.0"
+                        />
+                      </div>
+                      <div className="criterion-row-responsive__weight">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0.1"
+                          max="10"
+                          placeholder="Weight"
+                          value={c.weight || ''}
+                          onChange={(e) => handleCriterionChange(idx, 'weight', parseFloat(e.target.value) || 1.0)}
+                          className="input-field"
+                          style={{ width: '100%', fontSize: '0.85rem' }}
+                          title="Weight (must be > 0, default 1.0)"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCriterion(idx)}
+                        aria-label="Remove criterion"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--accent-amber)',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

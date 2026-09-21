@@ -89,4 +89,34 @@ export class ReportController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/v1/reports/cross-team
+   * Manager only: S2-25 Cross-team comparative analytics
+   */
+  static async getCrossTeamAnalytics(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const report = await ReportService.getCrossTeamAnalytics();
+      res.status(200).json({
+        data: report
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/reports/headcount-fulfillment
+   * Manager only: S2-28 Headcount vs approved / hired report
+   */
+  static async getHeadcountFulfillmentReport(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const report = await ReportService.getHeadcountFulfillmentReport();
+      res.status(200).json({
+        data: report
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

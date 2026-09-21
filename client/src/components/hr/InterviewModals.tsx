@@ -6,10 +6,12 @@ import {
   InterviewStatus,
   ScheduleInterviewInput,
   UpdateInterviewInput,
-  FeedbackItem
+  FeedbackItem,
+  QuestionSet,
 } from '../../types/hr';
 import { hrLookupsApi } from '../../api/hrLookups.api';
 import { hrFeedbackApi } from '../../api/hrFeedback.api';
+import { getQuestionSets, getQuestionSetById } from '../../api/batch2.api';
 import { StatusBadge } from './StatusBadge';
 
 /* =========================================================================
@@ -44,6 +46,11 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   const [selectedInterviewerIds, setSelectedInterviewerIds] = useState<string[]>([]);
   const [eligibleInterviewers, setEligibleInterviewers] = useState<EligibleInterviewerItem[]>([]);
   const [isFetchingInterviewers, setIsFetchingInterviewers] = useState(false);
+  const [questionSets, setQuestionSets] = useState<QuestionSet[]>([]);
+  const [selectedQuestionSetId, setSelectedQuestionSetId] = useState<string>('');
+  const [previewQuestionSet, setPreviewQuestionSet] = useState<QuestionSet | null>(null);
+  const [showQuestionPreview, setShowQuestionPreview] = useState<boolean>(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,6 +60,9 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       setLocation('');
       setMeetingLink('');
       setSelectedInterviewerIds([]);
+      setSelectedQuestionSetId('');
+      setShowQuestionPreview(false);
+      setPreviewQuestionSet(null);
 
       // Default scheduledAt to tomorrow at 10:00 AM
       const tomorrow = new Date();
@@ -72,6 +82,10 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
         .finally(() => {
           setIsFetchingInterviewers(false);
         });
+
+      getQuestionSets()
+        .then((sets) => setQuestionSets(sets || []))
+        .catch(() => {});
     }
   }, [isOpen, defaultStageId, stages]);
 
@@ -81,6 +95,30 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     setSelectedInterviewerIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleQuestionSetChange = (qsId: string) => {
+    setSelectedQuestionSetId(qsId);
+    setShowQuestionPreview(false);
+    setPreviewQuestionSet(null);
+  };
+
+  const handleTogglePreview = async () => {
+    if (showQuestionPreview) {
+      setShowQuestionPreview(false);
+      return;
+    }
+    if (!selectedQuestionSetId) return;
+    setIsPreviewLoading(true);
+    try {
+      const detailed = await getQuestionSetById(selectedQuestionSetId);
+      setPreviewQuestionSet(detailed);
+      setShowQuestionPreview(true);
+    } catch {
+      // ignore
+    } finally {
+      setIsPreviewLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,7 +157,8 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
         scheduledAt: scheduledDate.toISOString(),
         location: location.trim() ? location.trim() : undefined,
         meetingLink: meetingLink.trim() ? meetingLink.trim() : undefined,
-        interviewerIds: selectedInterviewerIds
+        interviewerIds: selectedInterviewerIds,
+        questionSetId: selectedQuestionSetId || undefined
       });
       onClose();
     } catch (err: any) {
@@ -197,6 +236,70 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                 onChange={(e) => setMeetingLink(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* S2-20/21: Question Set Selection & Preview */}
+          <div className="form-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label htmlFor="sched-questionset" style={{ margin: 0 }}>
+                Evaluation Question Set (Optional)
+              </label>
+              {selectedQuestionSetId && (
+                <button
+                  type="button"
+                  onClick={handleTogglePreview}
+                  className="btn btn-sm btn-secondary"
+                  style={{ fontSize: '0.75rem', padding: '2px 8px', height: '24px' }}
+                >
+                  {isPreviewLoading ? 'Loading...' : showQuestionPreview ? 'Hide Preview' : '👁️ Preview Questions'}
+                </button>
+              )}
+            </div>
+            <select
+              id="sched-questionset"
+              className="form-select"
+              value={selectedQuestionSetId}
+              onChange={(e) => handleQuestionSetChange(e.target.value)}
+            >
+              <option value="">None / General Evaluation Criteria</option>
+              {questionSets.map((qs) => (
+                <option key={qs.id} value={qs.id}>
+                  {qs.title} ({qs.category || 'General'}) — {qs.questionCount ?? qs.questions?.length ?? 0} questions
+                </option>
+              ))}
+            </select>
+            {showQuestionPreview && previewQuestionSet && (
+              <div style={{
+                marginTop: '10px',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                background: 'rgba(99,102,241,0.06)',
+                border: '1px solid rgba(99,102,241,0.2)',
+                maxHeight: '200px',
+                overflowY: 'auto',
+              }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '8px' }}>
+                  {previewQuestionSet.title} ({previewQuestionSet.questions?.length || 0} Questions):
+                </div>
+                {(!previewQuestionSet.questions || previewQuestionSet.questions.length === 0) ? (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No questions in this set.</div>
+                ) : (
+                  previewQuestionSet.questions.map((q, idx) => (
+                    <div key={q.id || idx} style={{ marginBottom: '8px', fontSize: '0.82rem', lineHeight: 1.4 }}>
+                      <strong>{idx + 1}. {q.questionText}</strong>
+                      {q.guidance && (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '2px', paddingLeft: '12px' }}>
+                          💡 <em>Guidance: {q.guidance}</em>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+            <p className="form-help-text">
+              Assign a structured question set to provide targeted evaluation guidance to interviewers.
+            </p>
           </div>
 
           <div className="form-group">

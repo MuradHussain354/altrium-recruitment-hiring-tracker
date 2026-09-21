@@ -13,12 +13,36 @@ router.get(
   InterviewController.listInterviews
 );
 
+// TeamLead: List historical interviews conducted by the authenticated interviewer
+router.get(
+  '/my-history',
+  requireAuth,
+  requireRole(Role.TeamLead),
+  InterviewController.getMyHistory
+);
+
 // HR, Manager, TeamLead (assigned only — enforced in service): interview detail
 router.get(
   '/:interviewId',
   requireAuth,
   requireRole(Role.HR, Role.Manager, Role.TeamLead),
   InterviewController.getInterviewById
+);
+
+// TeamLead: Accept or decline interview invitation
+router.post(
+  '/:interviewId/respond',
+  requireAuth,
+  requireRole(Role.TeamLead),
+  InterviewController.respondToInvitation
+);
+
+// TeamLead: Delegate interview assignment to another eligible interviewer
+router.post(
+  '/:interviewId/delegate',
+  requireAuth,
+  requireRole(Role.TeamLead),
+  InterviewController.delegateInterview
 );
 
 // HR only: update schedule/location/meetingLink

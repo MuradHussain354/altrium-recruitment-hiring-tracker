@@ -99,6 +99,15 @@ class ApiClient {
     });
   }
 
+  public put<T>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+    });
+  }
+
   public delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }

@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { teamLeadInterviewsApi } from '../../api/teamLeadInterviews.api';
+import { getMyInterviewHistory } from '../../api/batch2.api';
 import { TLInterviewListItem } from '../../types/teamlead';
-import { Calendar, Filter, ChevronRight, AlertCircle, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, Filter, ChevronRight, AlertCircle, MapPin, History, CheckCircle, Star } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export const TeamLeadInterviewsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'history' ? 'history' : 'active';
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>(initialTab);
+
   const [interviews, setInterviews] = useState<TLInterviewListItem[]>([]);
+  const [historyInterviews, setHistoryInterviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,28 +25,38 @@ export const TeamLeadInterviewsPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      const params: {
-        status?: 'Scheduled' | 'Completed' | 'Cancelled' | '';
-        from?: string;
-        to?: string;
-      } = {};
+      if (activeTab === 'active') {
+        const params: {
+          status?: 'Scheduled' | 'Completed' | 'Cancelled' | '';
+          from?: string;
+          to?: string;
+        } = {};
 
-      if (statusFilter) params.status = statusFilter;
-      if (fromDate) params.from = new Date(fromDate).toISOString();
-      if (toDate) params.to = new Date(toDate).toISOString();
+        if (statusFilter) params.status = statusFilter;
+        if (fromDate) params.from = new Date(fromDate).toISOString();
+        if (toDate) params.to = new Date(toDate).toISOString();
 
-      const res = await teamLeadInterviewsApi.listMyInterviews(params);
-      setInterviews(res.data);
+        const res = await teamLeadInterviewsApi.listMyInterviews(params);
+        setInterviews(res.data);
+      } else {
+        // S2-22: Dedicated Personal Interview History Endpoint
+        const historyData = await getMyInterviewHistory({
+          status: statusFilter || undefined,
+          from: fromDate ? new Date(fromDate).toISOString() : undefined,
+          to: toDate ? new Date(toDate).toISOString() : undefined
+        });
+        setHistoryInterviews(historyData || []);
+      }
       setIsLoading(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to load assigned interviews.');
+      setError(err.message || 'Failed to load interviews.');
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchInterviews();
-  }, [statusFilter, fromDate, toDate]);
+  }, [activeTab, statusFilter, fromDate, toDate]);
 
   return (
     <div>
@@ -131,90 +147,222 @@ export const TeamLeadInterviewsPage: React.FC = () => {
       )}
 
       {/* Interviews Table / Cards */}
-      <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-        {isLoading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Loading assigned interviews...
-          </div>
-        ) : interviews.length === 0 ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-            <Calendar size={36} color="var(--text-subtle)" style={{ marginBottom: '12px', opacity: 0.5 }} />
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
-              No Assigned Interviews Found
-            </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-              {statusFilter || fromDate || toDate ? 'Try clearing your search filters.' : 'You have no interview assignments matching criteria.'}
-            </p>
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Candidate</th>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Position & Department</th>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Stage</th>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Schedule & Location</th>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {interviews.map((item) => {
-                const formattedDate = item.scheduledAt
-                  ? new Date(item.scheduledAt).toLocaleString(undefined, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short'
-                    })
-                  : 'Not scheduled';
-
-                const badgeClass =
-                  item.status === 'Completed'
-                    ? 'badge-emerald'
-                    : item.status === 'Cancelled'
-                    ? 'badge-amber'
-                    : 'badge-cyan';
-
-                return (
-                  <tr key={item.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                    <td style={{ padding: '14px 20px', fontWeight: 600, color: 'var(--text-main)' }}>
-                      {item.application.candidate.name}
-                    </td>
-                    <td style={{ padding: '14px 20px', color: 'var(--text-main)' }}>
-                      <div>{item.application.position.title}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)' }}>{item.application.position.department}</div>
-                    </td>
-                    <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
-                      {item.stage.name}
-                    </td>
-                    <td style={{ padding: '14px 20px', color: 'var(--text-main)' }}>
-                      <div>{formattedDate}</div>
-                      {item.location && (
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={12} /> {item.location}
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <span className={`badge ${badgeClass}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <Link
-                        to={`/team-lead/interviews/${item.id}`}
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        Inspect <ChevronRight size={14} />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+      {/* Tab Switcher */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('active');
+            setSearchParams({});
+          }}
+          className={`btn ${activeTab === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <Calendar size={15} /> Active Assignments
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('history');
+            setSearchParams({ tab: 'history' });
+          }}
+          className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <History size={15} /> Personal Interview History
+        </button>
       </div>
+
+      {activeTab === 'active' ? (
+        <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+          {isLoading ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              Loading assigned interviews...
+            </div>
+          ) : interviews.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <Calendar size={36} color="var(--text-subtle)" style={{ marginBottom: '12px', opacity: 0.5 }} />
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
+                No Assigned Interviews Found
+              </h4>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                {statusFilter || fromDate || toDate ? 'Try clearing your search filters.' : 'You have no interview assignments matching criteria.'}
+              </p>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Candidate</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Position & Department</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Stage</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Schedule & Location</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Status</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {interviews.map((item) => {
+                  const formattedDate = item.scheduledAt
+                    ? new Date(item.scheduledAt).toLocaleString(undefined, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short'
+                      })
+                    : 'Not scheduled';
+
+                  const badgeClass =
+                    item.status === 'Completed'
+                      ? 'badge-emerald'
+                      : item.status === 'Cancelled'
+                      ? 'badge-amber'
+                      : 'badge-cyan';
+
+                  return (
+                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                      <td style={{ padding: '14px 20px', fontWeight: 600, color: 'var(--text-main)' }}>
+                        <div>{item.application.candidate.name}</div>
+                        {(item as any).questionSet && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--primary)', fontWeight: 600 }}>
+                              📋 {(item as any).questionSet.title}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-main)' }}>
+                        <div>{item.application.position.title}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)' }}>{item.application.position.department}</div>
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
+                        {item.stage.name}
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-main)' }}>
+                        <div>{formattedDate}</div>
+                        {item.location && (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={12} /> {item.location}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span className={`badge ${badgeClass}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                        <Link
+                          to={`/team-lead/interviews/${item.id}`}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          Inspect <ChevronRight size={14} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ) : (
+        /* S2-22: Dedicated Personal History View */
+        <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+          {isLoading ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              Loading your historical evaluation records...
+            </div>
+          ) : historyInterviews.length === 0 ? (
+            <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <History size={36} color="var(--text-subtle)" style={{ marginBottom: '12px', opacity: 0.5 }} />
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>
+                No Interview History Records
+              </h4>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                Historical evaluations you have performed will appear here automatically.
+              </p>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Candidate & Position</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Stage</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Date Conducted</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Your Feedback</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600 }}>Status</th>
+                  <th style={{ padding: '14px 20px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historyInterviews.map((hItem) => {
+                  const fb = hItem.feedbacks?.[0];
+                  const hasFb = Boolean(fb);
+                  const formattedDate = hItem.scheduledAt
+                    ? new Date(hItem.scheduledAt).toLocaleDateString(undefined, { dateStyle: 'medium' })
+                    : 'Unscheduled';
+
+                  return (
+                    <tr key={hItem.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                      <td style={{ padding: '14px 20px' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                          {hItem.application?.candidate?.name || 'Candidate'}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-subtle)' }}>
+                          {hItem.application?.position?.title}
+                        </div>
+                        {hItem.questionSet && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--primary)', fontWeight: 600 }}>
+                              📋 {hItem.questionSet.title}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>
+                        {hItem.stage?.name || 'Stage'}
+                      </td>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-main)' }}>
+                        {formattedDate}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        {hasFb ? (
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>
+                              <Star size={14} fill="#fbbf24" /> {Number(fb.overallRating || 0).toFixed(1)} / 5.0
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {fb.criterionScores?.length || 0} criteria scored
+                            </span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.78rem', color: 'var(--accent-amber)' }}>
+                            Evaluation Pending
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span className={`badge ${hItem.status === 'Completed' ? 'badge-emerald' : 'badge-cyan'}`}>
+                          {hItem.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                        <Link
+                          to={`/team-lead/interviews/${hItem.id}`}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          Review <ChevronRight size={14} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 };

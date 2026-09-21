@@ -84,8 +84,19 @@ export class FeedbackService {
           }
         });
 
-        // 2. Create FeedbackCriterionScore rows
+        // 2. Validate and create FeedbackCriterionScore rows
         if (input.criterionScores && input.criterionScores.length > 0) {
+          for (const c of input.criterionScores) {
+            const scoreNum = Number(c.score);
+            if (isNaN(scoreNum) || scoreNum < 1.0 || scoreNum > 5.0) {
+              throw new AppError(400, `Invalid criterion score for "${c.criterionName}". Score must be between 1.0 and 5.0.`);
+            }
+            const weightNum = c.weight !== undefined ? Number(c.weight) : 1.0;
+            if (isNaN(weightNum) || weightNum <= 0 || weightNum > 10.0) {
+              throw new AppError(400, `Invalid weight for "${c.criterionName}". Weight must be a positive number up to 10.0.`);
+            }
+          }
+
           await tx.feedbackCriterionScore.createMany({
             data: input.criterionScores.map((c) => ({
               feedbackId:    feedback.id,

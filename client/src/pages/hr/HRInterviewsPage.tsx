@@ -218,6 +218,15 @@ export const HRInterviewsPage: React.FC = () => {
                   </div>
                 )}
 
+                {int.questionSet && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 8px' }}>
+                    <span>📋 Evaluation Set: </span>
+                    <span style={{ padding: '2px 8px', borderRadius: '10px', background: 'rgba(99,102,241,0.12)', color: 'var(--primary)', fontWeight: 600 }}>
+                      {int.questionSet.title} ({int.questionSet.questions?.length ?? 0} questions)
+                    </span>
+                  </div>
+                )}
+
                 <div className="interview-schedule-card__interviewers">
                   <strong>Assigned Interviewers ({interviewers.length}):</strong>
                   <div className="interviewers-chip-list mt-1">

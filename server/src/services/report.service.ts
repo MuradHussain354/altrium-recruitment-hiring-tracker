@@ -442,4 +442,154 @@ export class ReportService {
       interviews
     };
   }
+
+  // ── S2-25: CROSS-TEAM COMPARATIVE ANALYTICS (Manager) ──────────────────────
+  static async getCrossTeamAnalytics() {
+    const positions = await prisma.position.findMany({
+      include: {
+        applications: {
+          select: {
+            id: true,
+            status: true,
+            offerApprovalStatus: true,
+            createdAt: true,
+            updatedAt: true,
+            interviews: {
+              select: { id: true, status: true }
+            }
+          }
+        }
+      }
+    });
+
+    const departmentMap = new Map<string, {
+      department: string;
+      positionCount: number;
+      applicationCount: number;
+      interviewCount: number;
+      hiredCount: number;
+      offerApprovedCount: number;
+      rejectedCount: number;
+      timeToHireTotalDays: number;
+      timeToHireCount: number;
+    }>();
+
+    for (const pos of positions) {
+      const dept = pos.department || 'Unassigned';
+      if (!departmentMap.has(dept)) {
+        departmentMap.set(dept, {
+          department: dept,
+          positionCount: 0,
+          applicationCount: 0,
+          interviewCount: 0,
+          hiredCount: 0,
+          offerApprovedCount: 0,
+          rejectedCount: 0,
+          timeToHireTotalDays: 0,
+          timeToHireCount: 0
+        });
+      }
+
+      const deptStat = departmentMap.get(dept)!;
+      deptStat.positionCount += 1;
+
+      for (const app of pos.applications) {
+        deptStat.applicationCount += 1;
+        deptStat.interviewCount += app.interviews.length;
+
+        if (app.status === ApplicationStatus.Hired) {
+          deptStat.hiredCount += 1;
+          const diffDays = Math.max(0, (app.updatedAt.getTime() - app.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          deptStat.timeToHireTotalDays += diffDays;
+          deptStat.timeToHireCount += 1;
+        } else if (app.status === ApplicationStatus.Rejected) {
+          deptStat.rejectedCount += 1;
+        }
+
+        if (app.offerApprovalStatus === 'Approved') {
+          deptStat.offerApprovedCount += 1;
+        }
+      }
+    }
+
+    const comparative = Array.from(departmentMap.values()).map((d) => {
+      const avgTimeToHireDays = d.timeToHireCount > 0
+        ? Math.round((d.timeToHireTotalDays / d.timeToHireCount) * 10) / 10
+        : 0;
+      const offerAcceptanceRate = (d.offerApprovedCount + d.hiredCount) > 0 && d.applicationCount > 0
+        ? Math.round(((d.offerApprovedCount + d.hiredCount) / d.applicationCount) * 1000) / 10
+        : 0;
+
+      return {
+        department: d.department,
+        positionCount: d.positionCount,
+        applicationCount: d.applicationCount,
+        interviewCount: d.interviewCount,
+        hiredCount: d.hiredCount,
+        offerApprovedCount: d.offerApprovedCount,
+        rejectedCount: d.rejectedCount,
+        avgTimeToHireDays,
+        offerAcceptanceRate
+      };
+    });
+
+    return { comparative };
+  }
+
+  // ── S2-28: HEADCOUNT VS APPROVED / HIRED (Manager) ──────────────────────────
+  static async getHeadcountFulfillmentReport() {
+    const positions = await prisma.position.findMany({
+      include: {
+        applications: {
+          select: {
+            id: true,
+            status: true,
+            offerApprovalStatus: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let overallTargetHeadcount = 0;
+    let overallHired = 0;
+    let overallOfferApproved = 0;
+
+    const items = positions.map((pos) => {
+      const hiredCount = pos.applications.filter((a) => a.status === ApplicationStatus.Hired).length;
+      const offerApprovedCount = pos.applications.filter((a) => a.offerApprovalStatus === 'Approved').length;
+      const targetHeadcount = pos.headcount || 1;
+      const remainingHeadcount = Math.max(0, targetHeadcount - hiredCount);
+      const fulfillmentPercent = Math.min(100, Math.round((hiredCount / targetHeadcount) * 100));
+
+      overallTargetHeadcount += targetHeadcount;
+      overallHired += hiredCount;
+      overallOfferApproved += offerApprovedCount;
+
+      return {
+        positionId: pos.id,
+        title: pos.title,
+        department: pos.department,
+        status: pos.status,
+        targetHeadcount,
+        hiredCount,
+        offerApprovedCount,
+        remainingHeadcount,
+        fulfillmentPercent
+      };
+    });
+
+    return {
+      summary: {
+        totalPositions: positions.length,
+        overallTargetHeadcount,
+        overallHired,
+        overallOfferApproved,
+        overallFulfillmentPercent: overallTargetHeadcount > 0
+          ? Math.min(100, Math.round((overallHired / overallTargetHeadcount) * 100))
+          : 0
+      },
+      positions: items
+    };
+  }
 }

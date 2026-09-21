@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface OverviewStatCardProps {
   title: string;
@@ -6,6 +7,7 @@ interface OverviewStatCardProps {
   subtitle?: string;
   icon?: React.ReactNode;
   color?: string;
+  linkTo?: string;
 }
 
 export const OverviewStatCard: React.FC<OverviewStatCardProps> = ({
@@ -13,10 +15,31 @@ export const OverviewStatCard: React.FC<OverviewStatCardProps> = ({
   value,
   subtitle,
   icon,
-  color = 'var(--primary)'
+  color = 'var(--primary)',
+  linkTo,
 }) => {
-  return (
-    <div className="glass-card" style={{ padding: '20px 24px' }}>
+  const content = (
+    <div
+      className="glass-card"
+      style={{
+        padding: '20px 24px',
+        transition: 'transform 0.15s ease, border-color 0.15s ease',
+        cursor: linkTo ? 'pointer' : 'default',
+        height: '100%',
+      }}
+      onMouseEnter={(e) => {
+        if (linkTo) {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.borderColor = color;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (linkTo) {
+          e.currentTarget.style.transform = 'none';
+          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+        }
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>{title}</span>
         {icon && (
@@ -44,4 +67,14 @@ export const OverviewStatCard: React.FC<OverviewStatCardProps> = ({
       )}
     </div>
   );
+
+  if (linkTo) {
+    return (
+      <Link to={linkTo} style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 };

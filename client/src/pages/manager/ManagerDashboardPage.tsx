@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { managerReportsApi } from '../../api/managerReports.api';
 import { OverviewReport, ReportFilters } from '../../types/manager';
@@ -13,7 +14,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Video,
-  MapPin
+  MapPin,
+  TrendingUp
 } from 'lucide-react';
 
 export const ManagerDashboardPage: React.FC = () => {
@@ -48,12 +50,24 @@ export const ManagerDashboardPage: React.FC = () => {
             <ShieldCheck size={14} /> Manager Executive Portal
           </span>
         </div>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-          Welcome back, {user?.name}!
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
-          Executive oversight of position requisitions, application volume, candidate pipeline, and evaluation metrics.
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+              Welcome back, {user?.name}!
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
+              Executive oversight of position requisitions, application volume, candidate pipeline, and evaluation metrics.
+            </p>
+          </div>
+          <Link
+            to="/manager/analytics"
+            className="btn btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}
+          >
+            <TrendingUp size={16} />
+            <span>Cross-Team Analytics</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -84,6 +98,7 @@ export const ManagerDashboardPage: React.FC = () => {
           subtitle={`Open: ${report?.positions.byStatus.Open ?? 0} | Draft: ${report?.positions.byStatus.Draft ?? 0}`}
           icon={<Briefcase size={20} />}
           color="var(--primary)"
+          linkTo="/manager/reports/positions"
         />
 
         <OverviewStatCard
@@ -92,6 +107,7 @@ export const ManagerDashboardPage: React.FC = () => {
           subtitle={`In Progress: ${report?.applications.byStatus.InProgress ?? 0} | Hired: ${report?.applications.byStatus.Hired ?? 0}`}
           icon={<FileText size={20} />}
           color="var(--accent-cyan)"
+          linkTo="/manager/reports/pipeline"
         />
 
         <OverviewStatCard
@@ -108,6 +124,7 @@ export const ManagerDashboardPage: React.FC = () => {
           subtitle={`Scheduled: ${report?.interviews.byStatus.Scheduled ?? 0} | Completed: ${report?.interviews.byStatus.Completed ?? 0}`}
           icon={<Calendar size={20} />}
           color="var(--accent-amber)"
+          linkTo="/manager/reports/interviews"
         />
 
         <OverviewStatCard
@@ -116,6 +133,7 @@ export const ManagerDashboardPage: React.FC = () => {
           subtitle="Evaluations completed by panel"
           icon={<CheckCircle2 size={20} />}
           color="var(--accent-emerald)"
+          linkTo="/manager/analytics"
         />
       </div>
 

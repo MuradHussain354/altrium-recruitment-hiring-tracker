@@ -182,4 +182,114 @@ export class InterviewController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/v1/interviews/:interviewId/respond
+   * TeamLead: Accept or decline interview invitation
+   */
+  static async respondToInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = interviewIdParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        throw new AppError(400, paramParsed.error.errors.map((e) => e.message).join(', '));
+      }
+
+      const { status, declineReason } = req.body;
+      if (!status || !['Accepted', 'Declined'].includes(status)) {
+        throw new AppError(400, 'Status must be Accepted or Declined.');
+      }
+
+      if (status === 'Declined' && (!declineReason || typeof declineReason !== 'string' || declineReason.trim().length === 0)) {
+        throw new AppError(400, 'A decline reason is required when declining an invitation.');
+      }
+
+      const result = await InterviewService.respondToInvitation(
+        req.user!,
+        paramParsed.data.interviewId,
+        status,
+        declineReason
+      );
+
+      res.status(200).json({
+        message: `Invitation ${status.toLowerCase()} successfully`,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/interviews/:interviewId/delegate
+   * TeamLead: Delegate interview assignment to another eligible interviewer
+   */
+  static async delegateInterview(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = interviewIdParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        throw new AppError(400, paramParsed.error.errors.map((e) => e.message).join(', '));
+      }
+
+      const { targetInterviewerId } = req.body;
+      if (!targetInterviewerId || typeof targetInterviewerId !== 'string') {
+        throw new AppError(400, 'targetInterviewerId is required');
+      }
+
+      const result = await InterviewService.delegateInterview(
+        req.user!,
+        paramParsed.data.interviewId,
+        targetInterviewerId
+      );
+
+      res.status(200).json({
+        message: 'Interview delegated successfully',
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/interviews/my-history
+   * TeamLead: List historical interviews conducted by the authenticated interviewer
+   */
+  static async getMyHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { status, from, to } = req.query;
+      const history = await InterviewService.getMyInterviewHistory(req.user!, {
+        status: status as any,
+        from: from ? new Date(String(from)) : undefined,
+        to: to ? new Date(String(to)) : undefined
+      });
+
+      res.status(200).json({
+        data: history,
+        count: history.length
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/applications/:applicationId/consolidated-feedback
+   * HR, TeamLead, Manager: Consolidated multi-interviewer feedback and deterministic scorecard
+   */
+  static async getConsolidatedFeedback(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = interviewApplicationParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        throw new AppError(400, paramParsed.error.errors.map((e) => e.message).join(', '));
+      }
+
+      const consolidated = await InterviewService.getConsolidatedFeedback(req.user!, paramParsed.data.applicationId);
+
+      res.status(200).json({
+        data: consolidated
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

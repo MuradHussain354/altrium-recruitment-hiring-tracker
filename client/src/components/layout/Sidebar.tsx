@@ -12,6 +12,9 @@ import {
   Bell,
   GitMerge,
   ShieldCheck,
+  TrendingUp,
+  CheckSquare,
+  ListChecks,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -54,6 +57,22 @@ export const Sidebar: React.FC = () => {
             >
               <Calendar size={18} />
               <span>Interviews Report</span>
+            </NavLink>
+            <NavLink
+              to="/manager/analytics"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <TrendingUp size={18} />
+              <span>Analytics &amp; Headcount</span>
+            </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>APPROVALS</div>
+            <NavLink
+              to="/manager/offer-approvals"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <CheckSquare size={18} />
+              <span>Offer Approvals</span>
             </NavLink>
 
             <div className="sidebar-group-title" style={{ marginTop: '12px' }}>ADMINISTRATION</div>
@@ -114,6 +133,13 @@ export const Sidebar: React.FC = () => {
               <Calendar size={18} />
               <span>Interviews</span>
             </NavLink>
+            <NavLink
+              to="/hr/question-sets"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <ListChecks size={18} />
+              <span>Question Sets</span>
+            </NavLink>
           </>
         );
 
@@ -135,6 +161,13 @@ export const Sidebar: React.FC = () => {
             >
               <Calendar size={18} />
               <span>Assigned Interviews</span>
+            </NavLink>
+            <NavLink
+              to="/team-lead/interviews?tab=history"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <BarChart3 size={18} />
+              <span>Interview History</span>
             </NavLink>
             <NavLink
               to="/team-lead/notifications"

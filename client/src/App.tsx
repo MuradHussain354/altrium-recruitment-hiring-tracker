@@ -30,6 +30,8 @@ import { ManagerInterviewsReportPage } from './pages/manager/ManagerInterviewsRe
 import { ManagerAccountsPage } from './pages/manager/ManagerAccountsPage';
 import { ManagerTeamsPage } from './pages/manager/ManagerTeamsPage';
 import { ManagerNotificationsPage } from './pages/manager/ManagerNotificationsPage';
+import ManagerAnalyticsPage from './pages/manager/ManagerAnalyticsPage';
+import ManagerOfferApprovalsPage from './pages/manager/ManagerOfferApprovalsPage';
 
 // TeamLead Portal Pages
 import { TeamLeadDashboardPage } from './pages/teamlead/TeamLeadDashboardPage';
@@ -46,6 +48,7 @@ import { HRPipelineEditorPage } from './pages/hr/HRPipelineEditorPage';
 import { HRApplicationsPage } from './pages/hr/HRApplicationsPage';
 import { HRApplicationDetailPage } from './pages/hr/HRApplicationDetailPage';
 import { HRInterviewsPage } from './pages/hr/HRInterviewsPage';
+import { HRQuestionSetsPage } from './pages/hr/HRQuestionSetsPage';
 
 export default function App() {
   return (
@@ -78,9 +81,16 @@ export default function App() {
             <Route path="/manager/reports/positions" element={<ManagerPositionsReportPage />} />
             <Route path="/manager/reports/pipeline" element={<ManagerPipelineReportPage />} />
             <Route path="/manager/reports/interviews" element={<ManagerInterviewsReportPage />} />
+            <Route path="/manager/analytics" element={<ManagerAnalyticsPage />} />
+            <Route path="/manager/offer-approvals" element={<ManagerOfferApprovalsPage />} />
             <Route path="/manager/accounts" element={<ManagerAccountsPage />} />
             <Route path="/manager/teams" element={<ManagerTeamsPage />} />
             <Route path="/manager/notifications" element={<ManagerNotificationsPage />} />
+          </Route>
+
+          {/* Shared Application Detail (HR & Manager) */}
+          <Route element={<RoleRoute allowedRoles={['HR', 'Manager']} />}>
+            <Route path="/hr/applications/:applicationId" element={<HRApplicationDetailPage />} />
           </Route>
 
           {/* HR Protected Area */}
@@ -91,8 +101,8 @@ export default function App() {
             <Route path="/hr/positions/:positionId" element={<HRPositionDetailPage />} />
             <Route path="/hr/positions/:positionId/pipeline" element={<HRPipelineEditorPage />} />
             <Route path="/hr/applications" element={<HRApplicationsPage />} />
-            <Route path="/hr/applications/:applicationId" element={<HRApplicationDetailPage />} />
             <Route path="/hr/interviews" element={<HRInterviewsPage />} />
+            <Route path="/hr/question-sets" element={<HRQuestionSetsPage />} />
           </Route>
 
           {/* TeamLead Protected Area */}

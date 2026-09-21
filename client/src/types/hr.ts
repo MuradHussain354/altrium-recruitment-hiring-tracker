@@ -137,12 +137,21 @@ export interface InterviewerAssignment {
   interviewId: string;
   interviewerId: string;
   feedbackSubmitted: boolean;
+  invitationStatus?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | string;
+  declineReason?: string | null;
+  respondedAt?: string | null;
+  assignedAt?: string;
   interviewer: {
     id: string;
     name: string;
     email: string;
     role: UserRole;
   };
+  delegatedTo?: {
+    id: string;
+    name: string;
+    role: UserRole;
+  } | null;
 }
 
 export interface Interview {
@@ -153,6 +162,8 @@ export interface Interview {
   location?: string | null;
   meetingLink?: string | null;
   status: InterviewStatus;
+  questionSetId?: string | null;
+  questionSet?: QuestionSet | null;
   createdById?: string;
   createdAt: string;
   updatedAt: string;
@@ -193,12 +204,14 @@ export interface ScheduleInterviewInput {
   location?: string;
   meetingLink?: string;
   interviewerIds: string[];
+  questionSetId?: string | null;
 }
 
 export interface UpdateInterviewInput {
   scheduledAt?: string;
   location?: string;
   meetingLink?: string;
+  questionSetId?: string | null;
 }
 
 export interface UpdateInterviewStatusInput {
@@ -230,4 +243,144 @@ export interface FeedbackItem {
     role: UserRole;
   };
   criteriaScores: FeedbackCriterionScore[];
+}
+
+// ── SPRINT 2 BATCH 2 TYPES ──────────────────────────────────────────────────
+
+export interface ApplicationInternalNote {
+  id: string;
+  applicationId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+  author: {
+    id: string;
+    name: string;
+    role: UserRole;
+  };
+}
+
+export interface ApplicationTag {
+  id: string;
+  applicationId: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface ApplicationComment {
+  id: string;
+  applicationId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+  author: {
+    id: string;
+    name: string;
+    role: UserRole;
+  };
+  mentions?: {
+    user: {
+      id: string;
+      name: string;
+    };
+  }[];
+}
+
+export interface SavedFilter {
+  id: string;
+  userId: string;
+  name: string;
+  filterData: Record<string, any>;
+  createdAt: string;
+}
+
+export interface Question {
+  id?: string;
+  questionText: string;
+  sequenceOrder: number;
+  guidance?: string | null;
+}
+
+export interface QuestionSet {
+  id: string;
+  title: string;
+  description?: string | null;
+  category: string;
+  createdAt: string;
+  isUsedByInterviews?: boolean;
+  questionCount?: number;
+  questions?: Question[];
+  createdBy?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface ConsolidatedFeedbackScorecard {
+  summary: {
+    totalInterviews: number;
+    totalFeedbacks: number;
+    overallWeightedScore: number | null;
+  };
+  interviews: {
+    id: string;
+    scheduledAt: string | null;
+    stageName: string;
+    interviewsCount: number;
+    feedbacks: {
+      id: string;
+      interviewerName: string;
+      interviewerRole: string;
+      submittedAt: string;
+      overallRating: number | null;
+      comments: string | null;
+      criterionScores: {
+        criterionName: string;
+        weight: number;
+        score: number;
+      }[];
+    }[];
+  }[];
+  aggregatedCriteria: {
+    criterionName: string;
+    averageScore: number;
+    averageWeight: number;
+    count: number;
+  }[];
+}
+
+export interface CrossTeamAnalytics {
+  comparative: {
+    department: string;
+    positionCount: number;
+    applicationCount: number;
+    interviewCount: number;
+    hiredCount: number;
+    offerApprovedCount: number;
+    rejectedCount: number;
+    avgTimeToHireDays: number;
+    offerAcceptanceRate: number;
+  }[];
+}
+
+export interface HeadcountFulfillmentReport {
+  summary: {
+    totalPositions: number;
+    overallTargetHeadcount: number;
+    overallHired: number;
+    overallOfferApproved: number;
+    overallFulfillmentPercent: number;
+  };
+  positions: {
+    positionId: string;
+    title: string;
+    department: string;
+    status: PositionStatus;
+    targetHeadcount: number;
+    hiredCount: number;
+    offerApprovedCount: number;
+    remainingHeadcount: number;
+    fulfillmentPercent: number;
+  }[];
 }

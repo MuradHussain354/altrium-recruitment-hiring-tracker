@@ -69,6 +69,9 @@ export interface TLInterviewDetail {
   assignments: Array<{
     id: string;
     feedbackSubmitted: boolean;
+    invitationStatus?: 'Pending' | 'Accepted' | 'Declined';
+    declineReason?: string | null;
+    delegatedToId?: string | null;
     assignedAt: string;
     interviewer: {
       id: string;
@@ -76,6 +79,19 @@ export interface TLInterviewDetail {
       role: string;
     };
   }>;
+  questionSetId?: string | null;
+  questionSet?: {
+    id: string;
+    title: string;
+    description?: string | null;
+    category: string;
+    questions?: Array<{
+      id?: string;
+      questionText: string;
+      sequenceOrder: number;
+      guidance?: string | null;
+    }>;
+  } | null;
 }
 
 export interface FeedbackCriterionScore {

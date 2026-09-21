@@ -152,4 +152,69 @@ export class ApplicationManagementController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/v1/applications/:applicationId/offer/request
+   * HR only: Request formal offer approval from Manager
+   */
+  static async requestOfferApproval(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = applicationIdParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        throw new AppError(400, paramParsed.error.errors.map((e) => e.message).join(', '));
+      }
+
+      const { salaryOffered, startDate, notes } = req.body;
+      const application = await ApplicationManagementService.requestOfferApproval(
+        req.user!.id,
+        paramParsed.data.applicationId,
+        {
+          salaryOffered: salaryOffered !== undefined ? Number(salaryOffered) : undefined,
+          startDate: startDate ? new Date(startDate) : undefined,
+          notes
+        }
+      );
+
+      res.status(200).json({
+        message: 'Offer approval requested successfully',
+        data: application
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/applications/:applicationId/offer/decide
+   * Manager only: Approve or reject requested offer
+   */
+  static async decideOfferApproval(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const paramParsed = applicationIdParamSchema.safeParse(req.params);
+      if (!paramParsed.success) {
+        throw new AppError(400, paramParsed.error.errors.map((e) => e.message).join(', '));
+      }
+
+      const { decision, notes } = req.body;
+      if (!decision || !['Approved', 'Rejected'].includes(decision)) {
+        throw new AppError(400, 'Decision must be Approved or Rejected.');
+      }
+
+      const application = await ApplicationManagementService.decideOfferApproval(
+        req.user!,
+        paramParsed.data.applicationId,
+        {
+          decision,
+          notes
+        }
+      );
+
+      res.status(200).json({
+        message: `Offer ${decision.toLowerCase()} successfully`,
+        data: application
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

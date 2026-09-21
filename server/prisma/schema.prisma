@@ -63,6 +63,18 @@ enum NotificationChannel {
   Email
 }
 
+enum InvitationStatus {
+  Pending
+  Accepted
+  Declined
+}
+
+enum OfferApprovalStatus {
+  Pending
+  Approved
+  Rejected
+}
+
 // ==========================================
 // MODELS
 // ==========================================
@@ -90,6 +102,14 @@ model User {
   interviewerAssignments InterviewerAssignment[]
   feedbacks              Feedback[]              @relation("FeedbackInterviewer")
   auditLogs              AuditLog[]              @relation("AuditActor")
+  delegatedAssignments  InterviewerAssignment[]   @relation("DelegatedAssignments")
+  requestedOffers       Application[]             @relation("ApplicationOfferRequester")
+  approvedOffers        Application[]             @relation("ApplicationOfferApprover")
+  internalNotes         ApplicationInternalNote[]
+  savedFilters          SavedFilter[]
+  createdQuestionSets   QuestionSet[]
+  applicationComments   ApplicationComment[]
+  commentMentions       CommentMention[]
 }
 
 // 2. Team
@@ -179,24 +199,40 @@ model Application {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  interviews Interview[]
+  offerApprovalStatus OfferApprovalStatus?
+  offerSalaryOffered  Decimal?            @db.Decimal(12, 2)
+  offerStartDate      DateTime?
+  offerNotes          String?
+  offerRequestedById  String?
+  offerRequestedBy    User?               @relation("ApplicationOfferRequester", fields: [offerRequestedById], references: [id])
+  offerApprovedById   String?
+  offerApprovedBy     User?               @relation("ApplicationOfferApprover", fields: [offerApprovedById], references: [id])
+  offerDecidedAt      DateTime?
+
+  interviews    Interview[]
+  internalNotes ApplicationInternalNote[]
+  tags          ApplicationTag[]
+  comments      ApplicationComment[]
 
   @@unique([candidateId, positionId])
 }
 
 // 8. Interview
 model Interview {
-  id            String          @id @default(uuid())
-  applicationId String
-  application   Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  stageId       String
-  stage         Stage           @relation(fields: [stageId], references: [id])
-  scheduledAt   DateTime?
-  location      String?
-  meetingLink   String?
-  status        InterviewStatus @default(Scheduled)
-  createdById   String
-  createdBy     User            @relation("CreatedInterviews", fields: [createdById], references: [id])
+  id              String          @id @default(uuid())
+  applicationId   String
+  application     Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  stageId         String
+  stage           Stage           @relation(fields: [stageId], references: [id])
+  scheduledAt     DateTime?
+  durationMinutes Int             @default(60)
+  location        String?
+  meetingLink     String?
+  status          InterviewStatus @default(Scheduled)
+  createdById     String
+  createdBy       User            @relation("CreatedInterviews", fields: [createdById], references: [id])
+  questionSetId   String?
+  questionSet     QuestionSet?    @relation(fields: [questionSetId], references: [id], onDelete: Restrict)
 
   assignments InterviewerAssignment[]
   feedbacks   Feedback[]
@@ -204,13 +240,18 @@ model Interview {
 
 // 9. InterviewerAssignment
 model InterviewerAssignment {
-  id                String    @id @default(uuid())
+  id                String           @id @default(uuid())
   interviewId       String
-  interview         Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  interview         Interview        @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   interviewerId     String
-  interviewer       User      @relation(fields: [interviewerId], references: [id])
-  feedbackSubmitted Boolean   @default(false)
-  assignedAt        DateTime  @default(now())
+  interviewer       User             @relation(fields: [interviewerId], references: [id])
+  feedbackSubmitted Boolean          @default(false)
+  invitationStatus  InvitationStatus @default(Pending)
+  declineReason     String?
+  respondedAt       DateTime?
+  delegatedToId     String?
+  delegatedTo       User?            @relation("DelegatedAssignments", fields: [delegatedToId], references: [id])
+  assignedAt        DateTime         @default(now())
 
   @@unique([interviewId, interviewerId])
 }
@@ -276,4 +317,98 @@ model JobAlertSubscription {
 
   @@index([email])
   @@index([isActive])
+}
+
+// 15. ApplicationInternalNote
+model ApplicationInternalNote {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id])
+  content       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([applicationId])
+}
+
+// 16. ApplicationTag
+model ApplicationTag {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  name          String
+  color         String      @default("#3B82F6")
+  createdAt     DateTime    @default(now())
+
+  @@unique([applicationId, name])
+  @@index([name])
+}
+
+// 17. SavedFilter
+model SavedFilter {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  filterData Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 18. QuestionSet
+model QuestionSet {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  category    String      @default("General")
+  createdById String
+  createdBy   User        @relation(fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  questions  Question[]
+  interviews Interview[]
+}
+
+// 19. Question
+model Question {
+  id            String      @id @default(uuid())
+  questionSetId String
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  questionText  String
+  sequenceOrder Int         @default(0)
+  guidance      String?
+
+  @@index([questionSetId])
+}
+
+// 20. ApplicationComment
+model ApplicationComment {
+  id            String           @id @default(uuid())
+  applicationId String
+  application   Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User             @relation(fields: [authorId], references: [id])
+  content       String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  mentions CommentMention[]
+  @@index([applicationId])
+}
+
+// 21. CommentMention
+model CommentMention {
+  id        String             @id @default(uuid())
+  commentId String
+  comment   ApplicationComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User               @relation(fields: [userId], references: [id])
+  createdAt DateTime           @default(now())
+
+  @@index([userId])
 }

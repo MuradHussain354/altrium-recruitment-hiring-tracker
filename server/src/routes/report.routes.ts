@@ -21,4 +21,10 @@ router.get('/pipeline', ReportController.getPipelineReport);
 // GET /api/v1/reports/interviews
 router.get('/interviews', ReportController.getInterviewsReport);
 
+// GET /api/v1/reports/cross-team
+router.get('/cross-team', ReportController.getCrossTeamAnalytics);
+
+// GET /api/v1/reports/headcount-fulfillment
+router.get('/headcount-fulfillment', ReportController.getHeadcountFulfillmentReport);
+
 export default router;

@@ -19,8 +19,14 @@ import {
   Users,
   MessageSquarePlus,
   ShieldAlert,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Share2,
+  HelpCircle,
 } from 'lucide-react';
+import { respondToInvitation, delegateInterview } from '../../api/batch2.api';
+import { hrLookupsApi } from '../../api/hrLookups.api';
 
 export const TeamLeadInterviewDetailPage: React.FC = () => {
   const { interviewId } = useParams<{ interviewId: string }>();
@@ -33,6 +39,16 @@ export const TeamLeadInterviewDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState<boolean>(false);
+
+  // S2-19 & S2-21 states
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [isDeclineModalOpen, setIsDeclineModalOpen] = useState<boolean>(false);
+  const [declineReason, setDeclineReason] = useState<string>('');
+  const [isDelegateModalOpen, setIsDelegateModalOpen] = useState<boolean>(false);
+  const [delegateTargetId, setDelegateTargetId] = useState<string>('');
+  const [eligiblePeers, setEligiblePeers] = useState<Array<{ id: string; name: string; email: string }>>([]);
 
   const loadData = async () => {
     if (!interviewId) return;
@@ -115,10 +131,82 @@ export const TeamLeadInterviewDetailPage: React.FC = () => {
     );
   }
 
-  const myAssignment = interview.assignments.find((a) => a.interviewer.id === user?.id);
+  const myAssignment = interview?.assignments.find((a) => a.interviewer.id === user?.id);
   const isFeedbackAlreadySubmitted = myAssignment?.feedbackSubmitted || ownFeedback !== null;
+  const invitationStatus = myAssignment?.invitationStatus || 'Pending';
 
-  const formattedDate = interview.scheduledAt
+  const handleAccept = async () => {
+    if (!interviewId) return;
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await respondToInvitation(interviewId, 'Accepted');
+      setActionSuccess('Interview invitation accepted.');
+      await loadData();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to accept invitation.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDecline = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!interviewId) return;
+    if (!declineReason.trim()) {
+      setActionError('Please provide a reason for declining.');
+      return;
+    }
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await respondToInvitation(interviewId, 'Declined', declineReason.trim());
+      setIsDeclineModalOpen(false);
+      setDeclineReason('');
+      setActionSuccess('Interview invitation declined.');
+      await loadData();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to decline invitation.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelegate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!interviewId) return;
+    if (!delegateTargetId.trim()) {
+      setActionError('Please provide the target Team Lead user ID.');
+      return;
+    }
+    try {
+      setActionLoading(true);
+      setActionError(null);
+      await delegateInterview(interviewId, delegateTargetId.trim());
+      setIsDelegateModalOpen(false);
+      setDelegateTargetId('');
+      setActionSuccess('Interview successfully delegated to peer Team Lead.');
+      await loadData();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to delegate interview.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleOpenDelegate = async () => {
+    setIsDelegateModalOpen(true);
+    setActionError(null);
+    try {
+      const res = await hrLookupsApi.listEligibleInterviewers();
+      const peers = (res.data || []).filter((u: any) => u.role === 'TeamLead' && u.id !== user?.id);
+      setEligiblePeers(peers);
+    } catch {
+      // ignore
+    }
+  };
+
+  const formattedDate = interview?.scheduledAt
     ? new Date(interview.scheduledAt).toLocaleString(undefined, {
         dateStyle: 'full',
         timeStyle: 'short'
@@ -147,17 +235,100 @@ export const TeamLeadInterviewDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {!isFeedbackAlreadySubmitted && (
-            <button
-              onClick={() => setIsSubmitModalOpen(true)}
-              className="btn btn-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '0.9rem' }}
-            >
-              <MessageSquarePlus size={18} /> Submit Evaluation Feedback
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {!isFeedbackAlreadySubmitted && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleOpenDelegate}
+                  className="btn btn-secondary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+                >
+                  <Share2 size={16} /> Delegate Interview
+                </button>
+
+                <button
+                  onClick={() => setIsSubmitModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '0.9rem' }}
+                >
+                  <MessageSquarePlus size={18} /> Submit Evaluation Feedback
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* S2-19: Invitation Status & Action Banner */}
+      {myAssignment && (
+        <div className="glass-card" style={{
+          padding: '16px 20px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          borderLeft: invitationStatus === 'Accepted' ? '4px solid #10b981' : invitationStatus === 'Declined' ? '4px solid #ef4444' : '4px solid #f59e0b',
+          backgroundColor: invitationStatus === 'Accepted' ? 'rgba(16, 185, 129, 0.05)' : invitationStatus === 'Declined' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(245, 158, 11, 0.08)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {invitationStatus === 'Accepted' ? (
+              <CheckCircle2 size={20} color="#10b981" />
+            ) : invitationStatus === 'Declined' ? (
+              <XCircle size={20} color="#ef4444" />
+            ) : (
+              <AlertCircle size={20} color="#f59e0b" />
+            )}
+            <div>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                Interview Assignment Invitation: <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{invitationStatus}</span>
+              </span>
+              <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {invitationStatus === 'Accepted' && 'You have confirmed your attendance for this technical evaluation session.'}
+                {invitationStatus === 'Declined' && `You declined this session. Reason: ${myAssignment.declineReason || 'Not specified'}`}
+                {invitationStatus === 'Pending' && 'Please confirm your availability or decline/delegate if you cannot attend.'}
+              </p>
+            </div>
+          </div>
+
+          {invitationStatus === 'Pending' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleAccept}
+                disabled={actionLoading}
+                className="btn btn-primary"
+                style={{ fontSize: '0.825rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#10b981', borderColor: '#10b981' }}
+              >
+                <CheckCircle2 size={15} /> Accept Invitation
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsDeclineModalOpen(true)}
+                disabled={actionLoading}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.825rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px', borderColor: 'rgba(239, 68, 68, 0.5)', color: '#f87171' }}
+              >
+                <XCircle size={15} /> Decline...
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {actionSuccess && (
+        <div style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#34d399', marginBottom: '20px', fontSize: '0.875rem' }}>
+          ✓ {actionSuccess}
+        </div>
+      )}
+
+      {actionError && (
+        <div style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', marginBottom: '20px', fontSize: '0.875rem' }}>
+          ⚠ {actionError}
+        </div>
+      )}
 
       {/* Main Details Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '28px' }}>
@@ -228,6 +399,75 @@ export const TeamLeadInterviewDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* S2-20/21: Assigned Evaluation Question Set */}
+      {interview.questionSet && (
+        <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HelpCircle size={18} color="var(--accent-cyan)" /> Evaluation Question Set: {interview.questionSet.title}
+            </h3>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--primary)' }}>
+              {interview.questionSet.category}
+            </span>
+          </div>
+          {interview.questionSet.description && (
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+              {interview.questionSet.description}
+            </p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(interview.questionSet.questions || []).map((q, idx) => (
+              <div
+                key={q.id || idx}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <span style={{
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    marginTop: '2px',
+                  }}>
+                    {idx + 1}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                      {q.questionText}
+                    </p>
+                    {q.guidance && (
+                      <div style={{
+                        marginTop: '6px',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        background: 'rgba(99,102,241,0.08)',
+                        borderLeft: '3px solid var(--primary)',
+                        fontSize: '0.8rem',
+                        color: 'var(--text-muted)',
+                      }}>
+                        <strong>Interviewer Guidance:</strong> {q.guidance}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Assigned Panel Members Card */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
         <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -283,6 +523,111 @@ export const TeamLeadInterviewDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Decline Invitation Modal */}
+      {isDeclineModalOpen && (
+        <div className="global-search-backdrop" style={{ zIndex: 1000 }}>
+          <div className="glass-card" style={{ maxWidth: '480px', width: '90%', padding: '24px', backgroundColor: '#0f172a' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+              Decline Interview Invitation
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Please provide a clear reason for declining this evaluation session so HR can reassign the candidate.
+            </p>
+            <form onSubmit={handleDecline}>
+              <textarea
+                rows={3}
+                required
+                className="input-field"
+                placeholder="Reason (e.g. Schedule conflict, out of office, domain mismatch)..."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                style={{ width: '100%', marginBottom: '16px' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsDeclineModalOpen(false)}
+                  className="btn btn-secondary"
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={actionLoading || !declineReason.trim()}
+                  style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}
+                >
+                  {actionLoading ? 'Declining...' : 'Confirm Decline'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delegate Interview Modal */}
+      {isDelegateModalOpen && (
+        <div className="global-search-backdrop" style={{ zIndex: 1000 }}>
+          <div className="glass-card" style={{ maxWidth: '480px', width: '90%', padding: '24px', backgroundColor: '#0f172a' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+              Delegate Interview Assignment
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Transfer your evaluation responsibility to another qualified Team Lead. An audit log and notification will be created.
+            </p>
+            <form onSubmit={handleDelegate}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Select Qualified Team Lead:
+                </label>
+                {eligiblePeers.length > 0 ? (
+                  <select
+                    required
+                    className="input-field"
+                    value={delegateTargetId}
+                    onChange={(e) => setDelegateTargetId(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px' }}
+                  >
+                    <option value="">-- Select Team Lead --</option>
+                    {eligiblePeers.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="Paste Team Lead user ID..."
+                    value={delegateTargetId}
+                    onChange={(e) => setDelegateTargetId(e.target.value)}
+                    style={{ width: '100%' }}
+                  />
+                )}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsDelegateModalOpen(false)}
+                  className="btn btn-secondary"
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={actionLoading || !delegateTargetId.trim()}
+                >
+                  {actionLoading ? 'Delegating...' : 'Confirm Delegation'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Submit Modal */}
       {interviewId && (

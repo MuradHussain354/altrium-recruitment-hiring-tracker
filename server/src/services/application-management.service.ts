@@ -239,4 +239,277 @@ export class ApplicationManagementService {
 
     return updatedApplication;
   }
+
+  /**
+   * Bulk status change for multiple applications.
+   * Each application is validated independently. Results returned per application.
+   */
+  static async bulkChangeStatus(
+    actorId: string,
+    applicationIds: string[],
+    status: ApplicationStatus,
+    statusReason?: string
+  ) {
+    const results: { applicationId: string; success: boolean; reason?: string }[] = [];
+
+    for (const applicationId of applicationIds) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          const application = await tx.application.findUnique({ where: { id: applicationId } });
+          if (!application) throw new Error('Application not found.');
+
+          const oldStatus = application.status;
+
+          await tx.application.update({
+            where: { id: applicationId },
+            data: { status, statusReason: statusReason ?? null }
+          });
+
+          await tx.auditLog.create({
+            data: {
+              actorId,
+              actionType: 'APPLICATION_STATUS_CHANGED',
+              entityType: 'Application',
+              entityId: applicationId,
+              details: JSON.stringify({ oldStatus, newStatus: status, bulk: true })
+            }
+          });
+        });
+
+        results.push({ applicationId, success: true });
+      } catch (err: any) {
+        results.push({ applicationId, success: false, reason: err.message ?? 'Unknown error' });
+      }
+    }
+
+    const succeeded = results.filter((r) => r.success).length;
+    return { total: applicationIds.length, succeeded, failed: applicationIds.length - succeeded, results };
+  }
+
+  /**
+   * Bulk stage change with per-application gating validation.
+   * Successful applications are updated; ineligible ones remain unchanged.
+   * Per-application result is returned.
+   */
+  static async bulkChangeStage(
+    actorId: string,
+    applicationIds: string[],
+    targetStageId: string
+  ) {
+    const results: { applicationId: string; success: boolean; reason?: string }[] = [];
+
+    // Pre-fetch target stage once
+    const targetStage = await prisma.stage.findUnique({ where: { id: targetStageId } });
+    if (!targetStage) throw new AppError(404, 'Target stage not found.');
+
+    for (const applicationId of applicationIds) {
+      try {
+        // All validation + update in a single atomic transaction per application
+        await prisma.$transaction(async (tx) => {
+          const application = await tx.application.findUnique({ where: { id: applicationId } });
+          if (!application) throw new Error('Application not found.');
+
+          if (targetStage.positionId !== application.positionId) {
+            throw new Error('Target stage does not belong to the application\'s position.');
+          }
+
+          if (application.currentStageId === targetStageId) {
+            throw new Error('Application is already at the specified stage.');
+          }
+
+          const currentStage = await tx.stage.findUnique({ where: { id: application.currentStageId } });
+          if (!currentStage) throw new Error('Current stage not found.');
+
+          // Gating enforcement
+          if (currentStage.isGating && currentStage.feedbackRequiredCount > 0) {
+            const qualifyingFeedbacks = await tx.feedback.findMany({
+              where: {
+                interview: {
+                  applicationId: application.id,
+                  stageId: application.currentStageId
+                }
+              },
+              include: {
+                interview: { include: { assignments: true } }
+              }
+            });
+
+            const qualifyingCount = qualifyingFeedbacks.filter((fb) =>
+              fb.interview.assignments.some(
+                (a) => a.interviewerId === fb.interviewerId && a.feedbackSubmitted === true
+              )
+            ).length;
+
+            if (qualifyingCount < currentStage.feedbackRequiredCount) {
+              throw new Error(
+                `Gating rule: stage '${currentStage.name}' requires ${currentStage.feedbackRequiredCount} feedback(s), received ${qualifyingCount}.`
+              );
+            }
+          }
+
+          const oldStageId = application.currentStageId;
+
+          await tx.application.update({
+            where: { id: applicationId },
+            data: { currentStageId: targetStageId }
+          });
+
+          await tx.auditLog.create({
+            data: {
+              actorId,
+              actionType: 'APPLICATION_STAGE_CHANGED',
+              entityType: 'Application',
+              entityId: applicationId,
+              details: JSON.stringify({ oldStageId, newStageId: targetStageId, bulk: true })
+            }
+          });
+        });
+
+        results.push({ applicationId, success: true });
+      } catch (err: any) {
+        results.push({ applicationId, success: false, reason: err.message ?? 'Unknown error' });
+      }
+    }
+
+    const succeeded = results.filter((r) => r.success).length;
+    return { total: applicationIds.length, succeeded, failed: applicationIds.length - succeeded, results };
+  }
+
+  /**
+   * Bulk team assignment for multiple applications.
+   * teamId can be null to unassign.
+   */
+  static async bulkAssignTeam(
+    actorId: string,
+    applicationIds: string[],
+    teamId: string | null
+  ) {
+    const results: { applicationId: string; success: boolean; reason?: string }[] = [];
+
+    if (teamId) {
+      const team = await prisma.team.findUnique({ where: { id: teamId } });
+      if (!team) throw new AppError(404, 'Team not found.');
+    }
+
+    for (const applicationId of applicationIds) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          const application = await tx.application.findUnique({ where: { id: applicationId } });
+          if (!application) throw new Error('Application not found.');
+
+          const oldTeamId = application.assignedTeamId;
+
+          await tx.application.update({
+            where: { id: applicationId },
+            data: { assignedTeamId: teamId }
+          });
+
+          await tx.auditLog.create({
+            data: {
+              actorId,
+              actionType: 'APPLICATION_TEAM_ASSIGNED',
+              entityType: 'Application',
+              entityId: applicationId,
+              details: JSON.stringify({ oldTeamId, newTeamId: teamId, bulk: true })
+            }
+          });
+        });
+
+        results.push({ applicationId, success: true });
+      } catch (err: any) {
+        results.push({ applicationId, success: false, reason: err.message ?? 'Unknown error' });
+      }
+    }
+
+    const succeeded = results.filter((r) => r.success).length;
+    return { total: applicationIds.length, succeeded, failed: applicationIds.length - succeeded, results };
+  }
+
+  /**
+   * HR requests Manager offer approval for an application.
+   * Does NOT modify application status.
+   */
+  static async requestOfferApproval(
+    actorId: string,
+    applicationId: string,
+    data: { salaryOffered?: number; startDate?: Date; notes?: string }
+  ) {
+    const application = await prisma.application.findUnique({ where: { id: applicationId } });
+    if (!application) throw new AppError(404, 'Application not found.');
+
+    if (application.offerApprovalStatus === 'Pending') {
+      throw new AppError(409, 'An offer approval is already pending for this application.');
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.application.update({
+        where: { id: applicationId },
+        data: {
+          offerApprovalStatus: 'Pending',
+          offerSalaryOffered: data.salaryOffered ? data.salaryOffered : null,
+          offerStartDate: data.startDate ?? null,
+          offerNotes: data.notes ?? null,
+          offerRequestedById: actorId
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          actionType: 'OFFER_APPROVAL_REQUESTED',
+          entityType: 'Application',
+          entityId: applicationId,
+          details: JSON.stringify({ requestedById: actorId })
+        }
+      });
+
+      return result;
+    });
+
+    return updated;
+  }
+
+  /**
+   * Manager approves or rejects an offer.
+   * IMPORTANT: Does NOT automatically set application status to Hired.
+   * Strictly Manager-only endpoint.
+   */
+  static async decideOfferApproval(
+    actor: { id: string; role: string },
+    applicationId: string,
+    data: { decision: 'Approved' | 'Rejected'; notes?: string }
+  ) {
+    const application = await prisma.application.findUnique({ where: { id: applicationId } });
+    if (!application) throw new AppError(404, 'Application not found.');
+
+    if (application.offerApprovalStatus !== 'Pending') {
+      throw new AppError(409, 'No pending offer approval for this application.');
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.application.update({
+        where: { id: applicationId },
+        data: {
+          offerApprovalStatus: data.decision as any,
+          offerApprovedById: actor.id,
+          offerDecidedAt: new Date(),
+          offerNotes: data.notes ?? application.offerNotes
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: actor.id,
+          actionType: `OFFER_${data.decision.toUpperCase()}`,
+          entityType: 'Application',
+          entityId: applicationId,
+          details: JSON.stringify({ decision: data.decision, decidedBy: actor.id })
+        }
+      });
+
+      return result;
+    });
+
+    return updated;
+  }
 }
