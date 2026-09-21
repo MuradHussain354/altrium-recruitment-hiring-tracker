@@ -2,6 +2,7 @@ import prisma from '../config/prisma';
 import { ApplicationStatus, PositionStatus, Prisma } from '@prisma/client';
 import { AppError } from '../utils/errors';
 import { CandidateApplicationInput, TrackApplicationInput } from '../schemas/application.schema';
+import { EmailService } from './email.service';
 
 export class ApplicationService {
   /**
@@ -88,6 +89,15 @@ export class ApplicationService {
               select: { id: true, name: true, sequenceOrder: true }
             }
           }
+        });
+
+        // Enqueue durable Application Confirmation email (S2-39)
+        await EmailService.sendApplicationConfirmation(tx, {
+          recipient: candidate.email,
+          applicationId: application.id,
+          candidateName: candidate.name,
+          positionTitle: position.title,
+          department: position.department,
         });
 
         return application;

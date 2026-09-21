@@ -4,6 +4,7 @@ dotenv.config();
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
 import { ApplicationManagementService } from '../services/application-management.service';
@@ -55,17 +56,17 @@ async function runApplicationManagementTests() {
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
       name:     'HR Internal',
       email:    'hr.internal@altrium.com',
-      password: 'HrPassword123!',
       role:     Role.HR
     });
+    await activateTestUserWithPassword('hr.internal@altrium.com', 'HrPassword123!');
     assert(hrUser.role === Role.HR, '2. HR account created');
 
     const teamLeadUser = await UserService.createManagedUser(managerUser!.id, {
       name:     'Team Lead',
       email:    'teamlead@altrium.com',
-      password: 'TlPassword123!',
       role:     Role.TeamLead
     });
+    await activateTestUserWithPassword('teamlead@altrium.com', 'TlPassword123!');
     assert(teamLeadUser.role === Role.TeamLead, '3. TeamLead account created');
 
     // ── 2. Create Position + Stages ──────────────────────────────────────────

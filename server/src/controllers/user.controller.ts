@@ -71,4 +71,24 @@ export class UserController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/v1/users/:userId/resend-invitation
+   * Manager only: reissues a fresh invitation token for a still-pending account.
+   */
+  static async resendInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication token required');
+      }
+      const { userId } = req.params;
+      if (!userId) {
+        throw new AppError(400, 'User ID is required in request parameters');
+      }
+      const result = await UserService.resendInvitation(req.user.id, userId);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

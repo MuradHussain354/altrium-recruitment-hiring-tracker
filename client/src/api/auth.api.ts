@@ -7,6 +7,8 @@ import {
   TwoFactorSetupResponse,
   TwoFactorEnableResponse,
   BackupCodesRegenerateResponse,
+  InvitationDetails,
+  AcceptInvitationResponse,
   User,
 } from '../types/auth';
 import { apiClient } from './apiClient';
@@ -47,6 +49,19 @@ export const getMeApi = async (): Promise<{ user: User }> =>
 /** POST /auth/logout */
 export const logoutApi = async (): Promise<{ success: true; message: string }> =>
   apiClient.post<{ success: true; message: string }>('/auth/logout', {});
+
+// ─── Account Invitation (S2-45) ────────────────────────────────────────────
+
+/** GET /auth/invitation-details — sanitized details for the acceptance page */
+export const getInvitationDetailsApi = async (token: string): Promise<InvitationDetails> =>
+  apiClient.get<InvitationDetails>(`/auth/invitation-details?token=${encodeURIComponent(token)}`);
+
+/** POST /auth/accept-invitation — sets password, activates account, returns a session */
+export const acceptInvitationApi = async (
+  token: string,
+  password: string
+): Promise<AcceptInvitationResponse> =>
+  apiClient.post<AcceptInvitationResponse>('/auth/accept-invitation', { token, password });
 
 // ─── 2FA Management ───────────────────────────────────────────────────────────
 

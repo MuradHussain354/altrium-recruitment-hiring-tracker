@@ -38,6 +38,10 @@ export const managerAccountsApi = {
     return apiClient.patch<UserMutationResponse>(`/users/${userId}/status`, { isActive });
   },
 
+  resendInvitation: async (userId: string): Promise<{ message: string }> => {
+    return apiClient.post<{ message: string }>(`/users/${userId}/resend-invitation`, {});
+  },
+
   listTeams: async (): Promise<TeamsListResponse> => {
     return apiClient.get<TeamsListResponse>('/teams');
   }

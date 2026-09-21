@@ -52,7 +52,6 @@ async function runPipelineStagesTests() {
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
       name: 'HR Coordinator',
       email: 'hr.stage@altrium.com',
-      password: 'HrPassword123!',
       role: Role.HR
     });
     assert(hrUser.role === Role.HR, '2. HR account created by Manager');

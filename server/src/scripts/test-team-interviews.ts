@@ -55,15 +55,15 @@ async function runTeamInterviewTests() {
     assert(!!managerUser, '1. System Manager bootstrapped');
 
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
-      name: 'HR Batch1', email: 'hr.batch1@altrium.com', password: 'HrPass123!', role: Role.HR
+      name: 'HR Batch1', email: 'hr.batch1@altrium.com', role: Role.HR
     });
     assert(hrUser.role === Role.HR, '2. HR account created');
 
     const teamLead1 = await UserService.createManagedUser(managerUser!.id, {
-      name: 'Team Lead One', email: 'tl1@altrium.com', password: 'TlPass123!', role: Role.TeamLead
+      name: 'Team Lead One', email: 'tl1@altrium.com', role: Role.TeamLead
     });
     const teamLead2 = await UserService.createManagedUser(managerUser!.id, {
-      name: 'Team Lead Two', email: 'tl2@altrium.com', password: 'TlPass123!', role: Role.TeamLead
+      name: 'Team Lead Two', email: 'tl2@altrium.com', role: Role.TeamLead
     });
     assert(teamLead1.role === Role.TeamLead && teamLead2.role === Role.TeamLead, '3. TeamLead accounts created');
 

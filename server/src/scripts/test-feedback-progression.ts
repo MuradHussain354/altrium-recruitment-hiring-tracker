@@ -4,6 +4,7 @@ dotenv.config();
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
 import { ApplicationService } from '../services/application.service';
@@ -56,19 +57,23 @@ async function runFeedbackProgressionTests() {
     assert(!!managerUser, '1. System Manager bootstrapped');
 
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
-      name: 'HR Batch2', email: 'hr.batch2@altrium.com', password: 'HrPass123!', role: Role.HR
+      name: 'HR Batch2', email: 'hr.batch2@altrium.com', role: Role.HR
     });
+    await activateTestUserWithPassword('hr.batch2@altrium.com', 'HrPass123!');
     assert(hrUser.role === Role.HR, '2. HR account created');
 
     const teamLead1 = await UserService.createManagedUser(managerUser!.id, {
-      name: 'Team Lead Alpha', email: 'tla@altrium.com', password: 'TlPass123!', role: Role.TeamLead
+      name: 'Team Lead Alpha', email: 'tla@altrium.com', role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tla@altrium.com', 'TlPass123!');
     const teamLead2 = await UserService.createManagedUser(managerUser!.id, {
-      name: 'Team Lead Beta', email: 'tlb@altrium.com', password: 'TlPass123!', role: Role.TeamLead
+      name: 'Team Lead Beta', email: 'tlb@altrium.com', role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tlb@altrium.com', 'TlPass123!');
     const teamLead3 = await UserService.createManagedUser(managerUser!.id, {
-      name: 'Team Lead Gamma', email: 'tlg@altrium.com', password: 'TlPass123!', role: Role.TeamLead
+      name: 'Team Lead Gamma', email: 'tlg@altrium.com', role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tlg@altrium.com', 'TlPass123!');
     assert(
       teamLead1.role === Role.TeamLead && teamLead2.role === Role.TeamLead && teamLead3.role === Role.TeamLead,
       '3. Three TeamLead accounts created'

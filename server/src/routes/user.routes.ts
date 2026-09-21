@@ -36,4 +36,11 @@ router.patch(
   UserController.setUserStatus
 );
 
+// POST /api/v1/users/:userId/resend-invitation - Manager reissues a pending invitation (Manager only)
+router.post(
+  '/:userId/resend-invitation',
+  requireRole(Role.Manager),
+  UserController.resendInvitation
+);
+
 export default router;

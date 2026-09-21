@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { managerAccountsApi } from '../../api/managerAccounts.api';
 import { TeamOption } from '../../types/manager';
-import { UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UserPlus, AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 
 interface AccountCreateFormProps {
   onAccountCreated: () => void;
@@ -10,7 +10,6 @@ interface AccountCreateFormProps {
 export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountCreated }) => {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
   const [role, setRole] = useState<'HR' | 'TeamLead'>('HR');
   const [teamId, setTeamId] = useState<string>('');
 
@@ -35,14 +34,6 @@ export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountC
     fetchTeams();
   }, []);
 
-  const validatePassword = (pass: string): string | null => {
-    if (pass.length < 8) return 'Password must be at least 8 characters long.';
-    if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter.';
-    if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter.';
-    if (!/[0-9]/.test(pass)) return 'Password must contain at least one number.';
-    return null;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -58,28 +49,20 @@ export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountC
       return;
     }
 
-    const passError = validatePassword(password);
-    if (passError) {
-      setError(passError);
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
       const res = await managerAccountsApi.createUser({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password,
         role,
         teamId: teamId || null
       });
 
       setIsSubmitting(false);
-      setSuccessMessage(`Account created successfully for ${res.user.email} (${res.user.role})`);
+      setSuccessMessage(`Invitation sent to ${res.user.email} (${res.user.role}). The account will activate once they accept it.`);
       setName('');
       setEmail('');
-      setPassword('');
       setRole('HR');
       setTeamId('');
       onAccountCreated();
@@ -175,21 +158,6 @@ export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountC
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '18px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-              Initial Password *
-            </label>
-            <input
-              type="password"
-              placeholder="Min 8 chars (1 upper, 1 lower, 1 digit)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field"
-              style={{ width: '100%' }}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
               Account Role *
             </label>
             <select
@@ -202,6 +170,22 @@ export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountC
               <option value="TeamLead">Team Lead (Technical Evaluator)</option>
             </select>
           </div>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '0.8rem',
+          color: 'var(--text-muted)',
+          backgroundColor: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          borderRadius: '8px',
+          padding: '10px 14px',
+          marginBottom: '18px'
+        }}>
+          <Mail size={14} color="var(--primary)" style={{ flexShrink: 0 }} />
+          <span>No password is set here — the invited user chooses their own password when they accept the invitation email (link expires in 7 days).</span>
         </div>
 
         <div style={{ marginBottom: '24px' }}>
@@ -231,7 +215,7 @@ export const AccountCreateForm: React.FC<AccountCreateFormProps> = ({ onAccountC
             disabled={isSubmitting}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 24px' }}
           >
-            {isSubmitting ? 'Provisioning Account...' : 'Create Account'}
+            {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
           </button>
         </div>
       </form>

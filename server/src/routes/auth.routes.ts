@@ -11,6 +11,12 @@ router.post('/login', AuthController.login);
 // POST /api/v1/auth/2fa/verify-login (Step 2)
 router.post('/2fa/verify-login', AuthController.verify2FALogin);
 
+// GET /api/v1/auth/invitation-details (S2-45, public)
+router.get('/invitation-details', AuthController.getInvitationDetails);
+
+// POST /api/v1/auth/accept-invitation (S2-45, public)
+router.post('/accept-invitation', AuthController.acceptInvitation);
+
 // Authenticated Endpoints (require active ACCESS token)
 // GET /api/v1/auth/me
 router.get('/me', requireAuth, AuthController.getMe);

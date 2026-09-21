@@ -77,6 +77,25 @@ enum OfferApprovalStatus {
   Rejected
 }
 
+enum EmailEventType {
+  ApplicationConfirmation
+  InterviewScheduled
+  InterviewRescheduled
+  InterviewCancelled
+  ApplicationRejected
+  ApplicationHired
+  AccountInvitation
+  JobAlert
+  HiringReportDigest
+}
+
+enum EmailDeliveryStatus {
+  Pending
+  Sending
+  Sent
+  Failed
+}
+
 // ==========================================
 // MODELS
 // ==========================================
@@ -99,6 +118,9 @@ model User {
   twoFactorSecret        String?
   twoFactorTempSecret    String?
   twoFactorTempExpiresAt DateTime?
+
+  invitationTokenHash    String?                 @unique
+  invitationExpiresAt    DateTime?
 
   // Reverse relations
   createdUsers           User[]                  @relation("UserCreator")
@@ -157,9 +179,12 @@ model Position {
   createdBy          User              @relation("PositionCreator", fields: [createdById], references: [id])
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  openedAt           DateTime?
 
   stages       Stage[]
   applications Application[]
+
+  @@index([status, openedAt])
 }
 
 // 5. Stage
@@ -447,4 +472,31 @@ model TwoFactorBackupCode {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+// 23. EmailDeliveryLog
+model EmailDeliveryLog {
+  id                String              @id @default(uuid())
+  idempotencyKey    String              @unique
+  eventType         EmailEventType
+  recipient         String
+  subject           String
+  payload           Json
+  status            EmailDeliveryStatus @default(Pending)
+  providerMessageId String?
+  errorMessage      String?
+  retryCount        Int                 @default(0)
+  lastAttemptAt     DateTime?
+  nextAttemptAt     DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime            @default(now())
+
+  applicationId     String?
+  interviewId       String?
+  userId            String?
+
+  @@index([status, nextAttemptAt])
+  @@index([eventType])
+  @@index([recipient])
+  @@index([createdAt])
 }

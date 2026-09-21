@@ -56,7 +56,6 @@ async function runPositionsApplicationsTests() {
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
       name: 'HR Lead',
       email: 'hr.lead@altrium.com',
-      password: 'HrPassword123!',
       role: Role.HR
     });
     assert(hrUser.role === Role.HR, '2. HR user account created by Manager');

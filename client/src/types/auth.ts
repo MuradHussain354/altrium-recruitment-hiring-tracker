@@ -78,6 +78,19 @@ export interface ApiErrorResponse {
   details?: Array<{ field?: string; message: string }> | any;
 }
 
+/** Sanitized invitation details returned by GET /auth/invitation-details */
+export interface InvitationDetails {
+  name: string;
+  email: string;
+  role: Role;
+}
+
+/** Result from POST /auth/accept-invitation */
+export interface AcceptInvitationResponse {
+  token: string;
+  user: User;
+}
+
 export interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -87,5 +100,7 @@ export interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<User | TwoFactorChallengeResponse>;
   /** Step 2 login — submits TOTP/backup code with tempToken */
   complete2FALogin: (tempToken: string, code: string) => Promise<User>;
+  /** Applies a session (token + user) obtained outside the normal login flow, e.g. after invitation acceptance */
+  applySession: (token: string, user: User) => void;
   logout: () => void;
 }

@@ -8,6 +8,7 @@ export class PositionService {
    * HR creates a recruitment position record only (no automatic stages).
    */
   static async createPosition(actorId: string, input: CreatePositionInput) {
+    const initialStatus = input.status ?? PositionStatus.Draft;
     const position = await prisma.position.create({
       data: {
         title: input.title,
@@ -15,7 +16,10 @@ export class PositionService {
         description: input.description,
         requiredSkills: input.requiredSkills,
         headcount: input.headcount ?? 1,
-        status: input.status ?? PositionStatus.Draft,
+        status: initialStatus,
+        // S2-07: stamp openedAt whenever a Position is created directly as Open,
+        // so the Job Alert scheduler can reliably detect "newly opened" positions.
+        openedAt: initialStatus === PositionStatus.Open ? new Date() : null,
         pipelineTemplateId: input.pipelineTemplateId,
         createdById: actorId
       },
@@ -153,9 +157,18 @@ export class PositionService {
     }
 
     const previousStatus = existingPosition.status;
+    // S2-07: only re-stamp openedAt when actually transitioning INTO Open from a
+    // different status — this is the reliable signal the Job Alert scheduler
+    // filters on, instead of the unrelated `updatedAt` timestamp (which also
+    // changes on ordinary content edits and would cause false "newly opened"
+    // alerts for positions that were already Open).
+    const isTransitioningToOpen = status === PositionStatus.Open && previousStatus !== PositionStatus.Open;
     const updatedPosition = await prisma.position.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        ...(isTransitioningToOpen && { openedAt: new Date() })
+      },
       include: {
         stages: {
           orderBy: { sequenceOrder: 'asc' }

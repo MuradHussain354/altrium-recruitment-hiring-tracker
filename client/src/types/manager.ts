@@ -116,12 +116,13 @@ export interface EligibleUser {
   role: 'HR' | 'TeamLead' | string;
   isActive: boolean;
   teamId: string | null;
+  /** true when the account was created by invitation and has not yet been accepted */
+  invitationPending?: boolean;
 }
 
 export interface CreateUserInput {
   name: string;
   email: string;
-  password: string;
   role: 'HR' | 'TeamLead';
   teamId?: string | null;
 }

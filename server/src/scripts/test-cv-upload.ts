@@ -6,6 +6,7 @@ import app from '../app';
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
 import { ApplicationManagementService } from '../services/application-management.service';
@@ -63,16 +64,16 @@ async function runCvUploadTests() {
     const hr = await UserService.createManagedUser(manager.id, {
       name: 'HR Recruiter',
       email: 'hr.recruiter@altrium.com',
-      password: 'HrPassword123!',
       role: Role.HR
     });
+    await activateTestUserWithPassword('hr.recruiter@altrium.com', 'HrPassword123!');
 
     const teamLead = await UserService.createManagedUser(manager.id, {
       name: 'Engineering Lead',
       email: 'teamlead@altrium.com',
-      password: 'LeadPassword123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword('teamlead@altrium.com', 'LeadPassword123!');
 
     // 2. HR creates an Open position with a pipeline stage
     const position = await PositionService.createPosition(hr.id, {

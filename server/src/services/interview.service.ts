@@ -8,6 +8,7 @@ import {
   UpdateInterviewersInput,
   ListInterviewsInput
 } from '../schemas/interview.schema';
+import { EmailService } from './email.service';
 
 // ── Reusable Prisma include shapes ──────────────────────────────────────────
 
@@ -92,9 +93,15 @@ export class InterviewService {
    * Does NOT modify Application.currentStageId or Application.status.
    */
   static async createInterview(actorId: string, applicationId: string, input: CreateInterviewInput) {
-    // Read-only validation outside transaction
+    // Read-only validation outside transaction. Enriched with candidate/position
+    // data so the InterviewScheduled email payload (S2-40) can be built without
+    // any additional query once inside the transaction below.
     const application = await prisma.application.findUnique({
-      where: { id: applicationId }
+      where: { id: applicationId },
+      include: {
+        candidate: { select: { name: true, email: true } },
+        position:  { select: { title: true } }
+      }
     });
     if (!application) throw new AppError(404, 'Application not found.');
 
@@ -199,10 +206,31 @@ export class InterviewService {
         }
       });
 
+      // S2-40: Enqueue InterviewScheduled email INSIDE this transaction so the
+      // EmailDeliveryLog row is durably created atomically with the interview
+      // itself — if the transaction commits, both exist; if it rolls back,
+      // neither does. All payload data comes from `application`/`stage`,
+      // already fetched above — no extra query is introduced here.
+      if (application.candidate?.email) {
+        await EmailService.sendInterviewScheduled(tx, {
+          recipient:       application.candidate.email,
+          interviewId:     created.id,
+          applicationId,
+          candidateName:   application.candidate.name,
+          positionTitle:   application.position.title,
+          stageName:       stage.name,
+          scheduledAt:     created.scheduledAt ?? new Date(),
+          durationMinutes: created.durationMinutes,
+          location:        created.location,
+          meetingLink:     created.meetingLink,
+        });
+      }
+
       return created;
     });
 
-    // Return full detail outside transaction (read-only)
+    // Read-only detail fetch for the API response — does not affect outbox
+    // durability, since the email intent was already committed above.
     return prisma.interview.findUnique({
       where:   { id: interview.id },
       include: interviewDetailInclude
@@ -334,6 +362,23 @@ export class InterviewService {
         });
       }
 
+      // S2-41: Enqueue rescheduled email inside the transaction when scheduledAt changes
+      if (input.scheduledAt !== undefined && result.application?.candidate?.email) {
+        await EmailService.sendInterviewRescheduled(tx, {
+          recipient:       result.application.candidate.email,
+          interviewId,
+          applicationId:   result.applicationId,
+          candidateName:   result.application.candidate.name,
+          positionTitle:   result.application.position.title,
+          stageName:       result.stage.name,
+          oldScheduledAt:  interview.scheduledAt ?? new Date(),
+          newScheduledAt:  input.scheduledAt,
+          durationMinutes: result.durationMinutes,
+          location:        result.location,
+          meetingLink:     result.meetingLink,
+        });
+      }
+
       await tx.auditLog.create({
         data: {
           actorId,
@@ -360,7 +405,17 @@ export class InterviewService {
    */
   static async updateInterviewStatus(actorId: string, interviewId: string, input: UpdateInterviewStatusInput) {
     const interview = await prisma.interview.findUnique({
-      where: { id: interviewId }
+      where:   { id: interviewId },
+      include: {
+        application: {
+          select: {
+            id:        true,
+            candidate: { select: { email: true, name: true } },
+            position:  { select: { title: true } }
+          }
+        },
+        stage: { select: { name: true } }
+      }
     });
     if (!interview) throw new AppError(404, 'Interview not found.');
 
@@ -372,6 +427,19 @@ export class InterviewService {
         data:    { status: input.status },
         include: interviewDetailInclude
       });
+
+      // S2-42: Enqueue interview cancelled email when status transitions to Cancelled
+      if (input.status === InterviewStatus.Cancelled && interview.application?.candidate?.email) {
+        await EmailService.sendInterviewCancelled(tx, {
+          recipient:     interview.application.candidate.email,
+          interviewId,
+          applicationId: interview.applicationId,
+          candidateName: interview.application.candidate.name,
+          positionTitle: interview.application.position.title,
+          stageName:     interview.stage?.name ?? 'Interview',
+          scheduledAt:   interview.scheduledAt ?? new Date(),
+        });
+      }
 
       await tx.auditLog.create({
         data: {

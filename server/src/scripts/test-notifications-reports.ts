@@ -6,6 +6,7 @@ import app from '../app';
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
 import { ApplicationService } from '../services/application.service';
@@ -69,29 +70,29 @@ async function runNotificationsAndReportsTests() {
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
       name: 'HR Batch3',
       email: 'hr.batch3@altrium.com',
-      password: 'HrPassword123!',
       role: Role.HR
     });
+    await activateTestUserWithPassword('hr.batch3@altrium.com', 'HrPassword123!');
     assert(hrUser.role === Role.HR, '2. HR user created');
 
     const teamLead1 = await UserService.createManagedUser(managerUser!.id, {
       name: 'TeamLead Alpha',
       email: 'tl.alpha@altrium.com',
-      password: 'TlPassword123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tl.alpha@altrium.com', 'TlPassword123!');
     const teamLead2 = await UserService.createManagedUser(managerUser!.id, {
       name: 'TeamLead Beta',
       email: 'tl.beta@altrium.com',
-      password: 'TlPassword123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tl.beta@altrium.com', 'TlPassword123!');
     const teamLead3 = await UserService.createManagedUser(managerUser!.id, {
       name: 'TeamLead Gamma',
       email: 'tl.gamma@altrium.com',
-      password: 'TlPassword123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tl.gamma@altrium.com', 'TlPassword123!');
     assert(!!teamLead1 && !!teamLead2 && !!teamLead3, '3. Three TeamLead users created');
 
     // Generate JWT tokens for HTTP RBAC testing

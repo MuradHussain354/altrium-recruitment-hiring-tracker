@@ -4,6 +4,7 @@ dotenv.config();
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
 import { ApplicationService } from '../services/application.service';
@@ -57,17 +58,17 @@ async function runHotfixTests() {
     const hrUser = await UserService.createManagedUser(managerUser!.id, {
       name: 'HR Lead',
       email: 'hr.lead@altrium.com',
-      password: 'HrPass123!',
       role: Role.HR
     });
+    await activateTestUserWithPassword('hr.lead@altrium.com', 'HrPass123!');
     assert(hrUser.role === Role.HR, '2. HR account created');
 
     const teamLead = await UserService.createManagedUser(managerUser!.id, {
       name: 'Tech Lead',
       email: 'tech.lead@altrium.com',
-      password: 'LeadPass123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword('tech.lead@altrium.com', 'LeadPass123!');
     assert(teamLead.role === Role.TeamLead, '3. TeamLead account created');
 
     // 2. Position & Stage setup
@@ -196,7 +197,6 @@ async function runHotfixTests() {
     const unassignedLead = await UserService.createManagedUser(managerUser!.id, {
       name: 'Unassigned Lead',
       email: 'unassigned.lead@altrium.com',
-      password: 'LeadPass123!',
       role: Role.TeamLead
     });
     const unassignedInterviews = await InterviewService.listInterviews({ id: unassignedLead.id, role: Role.TeamLead }, {});

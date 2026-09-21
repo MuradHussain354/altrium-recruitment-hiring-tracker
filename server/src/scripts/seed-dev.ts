@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '../config/prisma';
 import { Role, PositionStatus, CandidateSource } from '@prisma/client';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { TeamService } from '../services/team.service';
 import { PositionService } from '../services/position.service';
 import { StageService } from '../services/stage.service';
@@ -116,10 +117,10 @@ export async function seedDev(): Promise<void> {
     const safeProfile = await UserService.createManagedUser(manager.id, {
       name: 'Development HR',
       email: 'hr@altrium.local',
-      password: 'HrPassword123!',
       role: Role.HR,
       teamId: frontendTeam.id
     });
+    await activateTestUserWithPassword('hr@altrium.local', 'HrPassword123!');
     hrUser = await prisma.user.findUniqueOrThrow({ where: { id: safeProfile.id } });
     hrUserCreated = true;
   }
@@ -136,10 +137,10 @@ export async function seedDev(): Promise<void> {
     const safeProfile = await UserService.createManagedUser(manager.id, {
       name: 'Frontend Team Lead',
       email: 'lead.frontend@altrium.local',
-      password: 'LeadPassword123!',
       role: Role.TeamLead,
       teamId: frontendTeam.id
     });
+    await activateTestUserWithPassword('lead.frontend@altrium.local', 'LeadPassword123!');
     teamLeadUser = await prisma.user.findUniqueOrThrow({ where: { id: safeProfile.id } });
     teamLeadCreated = true;
   }

@@ -107,6 +107,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return response.user;
   };
 
+  /**
+   * Applies a session obtained outside the normal login flow (currently: after
+   * invitation acceptance, whose response has the same {token, user} shape as
+   * the direct-login and 2FA-verify responses).
+   */
+  const applySession = (token: string, sessionUser: User): void => {
+    setToken(token);
+    setTokenState(token);
+    setUser(sessionUser);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -116,6 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         complete2FALogin,
+        applySession,
         logout,
       }}
     >

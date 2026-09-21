@@ -20,6 +20,8 @@ import notificationRoutes from './routes/notification.routes';
 import reportRoutes from './routes/report.routes';
 import teamRoutes from './routes/team.routes';
 import auditLogRoutes from './routes/audit-log.routes';
+import jobAlertRoutes from './routes/job-alert.routes';
+import emailDeliveryLogRoutes from './routes/email-delivery-log.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -77,6 +79,8 @@ app.use('/api/v1/interviews', feedbackRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/audit-logs', auditLogRoutes);
+app.use('/api/v1/job-alerts', jobAlertRoutes);
+app.use('/api/v1/email-logs', emailDeliveryLogRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {

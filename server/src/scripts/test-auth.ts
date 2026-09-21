@@ -4,6 +4,7 @@ import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/user.service';
+import { activateTestUserWithPassword } from './_test-helpers';
 import { Role } from '@prisma/client';
 import { AppError } from '../utils/errors';
 
@@ -93,9 +94,9 @@ async function runAuthTests() {
     const hrUser = await UserService.createManagedUser(managerInDb!.id, {
       name: 'Test HR',
       email: hrEmail,
-      password: 'HrPassword123!',
       role: Role.HR
     });
+    await activateTestUserWithPassword(hrEmail, 'HrPassword123!');
     assert(hrUser.role === Role.HR, '12. Manager successfully created HR user');
     assert(hrUser.createdById === managerInDb!.id, '13. HR user createdById preserves Manager ID lineage');
 
@@ -104,9 +105,9 @@ async function runAuthTests() {
     const tlUser = await UserService.createManagedUser(managerInDb!.id, {
       name: 'Test TeamLead',
       email: tlEmail,
-      password: 'TlPassword123!',
       role: Role.TeamLead
     });
+    await activateTestUserWithPassword(tlEmail, 'TlPassword123!');
     assert(tlUser.role === Role.TeamLead, '14. Manager successfully created TeamLead user');
 
     // Test 9: Duplicate Email Registration Rejection
@@ -114,7 +115,6 @@ async function runAuthTests() {
       await UserService.createManagedUser(managerInDb!.id, {
         name: 'Duplicate HR',
         email: hrEmail,
-        password: 'HrPassword123!',
         role: Role.HR
       });
       assert(false, '15. Duplicate email should throw error');

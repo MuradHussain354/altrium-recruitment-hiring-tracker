@@ -19,6 +19,7 @@ import TrackApplicationPage from './pages/public/TrackApplicationPage';
 
 // Auth & Error Pages
 import LoginPage from './pages/LoginPage';
+import AcceptInvitationPage from './pages/AcceptInvitationPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -71,6 +72,7 @@ export default function App() {
       {/* Public Auth & System Pages (clean, navbar-free PublicLayout) */}
       <Route element={<PublicLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
       </Route>
 

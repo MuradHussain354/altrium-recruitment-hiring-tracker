@@ -124,7 +124,7 @@ export const ManagerAccountsPage: React.FC = () => {
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <span className={`badge ${u.isActive ? 'badge-emerald' : 'badge-amber'}`} style={{ fontSize: '0.75rem' }}>
-                        {u.isActive ? 'Active' : 'Inactive'}
+                        {u.isActive ? 'Active' : u.invitationPending ? 'Invited (Pending)' : 'Inactive'}
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right' }}>

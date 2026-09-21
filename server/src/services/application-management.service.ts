@@ -2,6 +2,7 @@ import prisma from '../config/prisma';
 import { AppError } from '../utils/errors';
 import { ApplicationStatus } from '@prisma/client';
 import { ListApplicationsInput, ChangeStageInput, ChangeStatusInput } from '../schemas/application-management.schema';
+import { EmailService } from './email.service';
 
 // Prisma include shapes reused across methods
 const listInclude = {
@@ -201,9 +202,13 @@ export class ApplicationManagementService {
    * statusReason is NOT stored in audit details — only on the Application record.
    */
   static async updateApplicationStatus(actorId: string, applicationId: string, input: ChangeStatusInput) {
-    // Fetch Application outside transaction (read-only validation)
+    // Fetch Application with candidate + position for email context
     const application = await prisma.application.findUnique({
-      where: { id: applicationId }
+      where: { id: applicationId },
+      include: {
+        candidate: { select: { name: true, email: true } },
+        position:  { select: { title: true, department: true } }
+      }
     });
 
     if (!application) {
@@ -222,6 +227,28 @@ export class ApplicationManagementService {
         },
         include: detailInclude
       });
+
+      // S2-43: Enqueue rejection email inside transaction
+      if (input.status === ApplicationStatus.Rejected && application.candidate?.email) {
+        await EmailService.sendApplicationRejected(tx, {
+          recipient:      application.candidate.email,
+          applicationId,
+          candidateName:  application.candidate.name,
+          positionTitle:  application.position?.title ?? 'the position',
+          rejectionDate:  new Date(),
+        });
+      }
+
+      // S2-44: Enqueue hired email inside transaction
+      if (input.status === ApplicationStatus.Hired && application.candidate?.email) {
+        await EmailService.sendApplicationHired(tx, {
+          recipient:     application.candidate.email,
+          applicationId,
+          candidateName: application.candidate.name,
+          positionTitle: application.position?.title ?? 'the position',
+          department:    application.position?.department ?? '',
+        });
+      }
 
       await tx.auditLog.create({
         data: {
