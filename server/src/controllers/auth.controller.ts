@@ -1,13 +1,112 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service';
-import { loginSchema } from '../schemas/auth.schema';
+import { AuditLogService } from '../services/audit-log.service';
+import {
+  loginSchema,
+  enable2FASchema,
+  disable2FASchema,
+  regenerateBackupCodesSchema,
+  verify2FALoginSchema,
+} from '../schemas/auth.schema';
 import { AppError } from '../utils/errors';
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const validatedInput = loginSchema.parse(req.body);
-      const result = await AuthService.login(validatedInput);
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.login(validatedInput, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async verify2FALogin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const validatedInput = verify2FALoginSchema.parse(req.body);
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.verify2FALogin(validatedInput, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async setup2FA(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.setup2FA(req.user.id, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async enable2FA(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const validatedInput = enable2FASchema.parse(req.body);
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.enable2FA(req.user.id, validatedInput, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async disable2FA(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const validatedInput = disable2FASchema.parse(req.body);
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.disable2FA(req.user.id, validatedInput, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async regenerateBackupCodes(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const validatedInput = regenerateBackupCodesSchema.parse(req.body);
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.regenerateBackupCodes(req.user.id, validatedInput, meta);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async get2FAStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const result = await AuthService.get2FAStatus(req.user.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'Authentication required');
+      }
+      const meta = AuditLogService.extractRequestMeta(req);
+      const result = await AuthService.logout(req.user.id, meta);
       res.status(200).json(result);
     } catch (error) {
       next(error);

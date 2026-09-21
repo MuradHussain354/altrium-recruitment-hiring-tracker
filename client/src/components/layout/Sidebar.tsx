@@ -15,6 +15,8 @@ import {
   TrendingUp,
   CheckSquare,
   ListChecks,
+  Shield,
+  Activity,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -97,6 +99,22 @@ export const Sidebar: React.FC = () => {
               <Bell size={18} />
               <span>Notifications</span>
             </NavLink>
+            <NavLink
+              to="/manager/access-log"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Activity size={18} />
+              <span>Access Log</span>
+            </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>ACCOUNT</div>
+            <NavLink
+              to="/settings/security"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Shield size={18} />
+              <span>Security</span>
+            </NavLink>
           </>
         );
 
@@ -140,6 +158,15 @@ export const Sidebar: React.FC = () => {
               <ListChecks size={18} />
               <span>Question Sets</span>
             </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>ACCOUNT</div>
+            <NavLink
+              to="/settings/security"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Shield size={18} />
+              <span>Security</span>
+            </NavLink>
           </>
         );
 
@@ -175,6 +202,15 @@ export const Sidebar: React.FC = () => {
             >
               <Bell size={18} />
               <span>Notifications</span>
+            </NavLink>
+
+            <div className="sidebar-group-title" style={{ marginTop: '12px' }}>ACCOUNT</div>
+            <NavLink
+              to="/settings/security"
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            >
+              <Shield size={18} />
+              <span>Security</span>
             </NavLink>
           </>
         );

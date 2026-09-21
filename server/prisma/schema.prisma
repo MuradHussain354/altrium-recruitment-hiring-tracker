@@ -95,6 +95,11 @@ model User {
   createdBy    User?    @relation("UserCreator", fields: [createdById], references: [id])
   createdAt    DateTime @default(now())
 
+  twoFactorEnabled       Boolean                 @default(false)
+  twoFactorSecret        String?
+  twoFactorTempSecret    String?
+  twoFactorTempExpiresAt DateTime?
+
   // Reverse relations
   createdUsers           User[]                  @relation("UserCreator")
   createdTeams           Team[]                  @relation("TeamCreator")
@@ -112,6 +117,7 @@ model User {
   createdQuestionSets   QuestionSet[]
   applicationComments   ApplicationComment[]
   commentMentions       CommentMention[]
+  twoFactorBackupCodes  TwoFactorBackupCode[]
 }
 
 // 2. Team
@@ -307,13 +313,20 @@ model Notification {
 // 13. AuditLog
 model AuditLog {
   id         String   @id @default(uuid())
-  actorId    String
-  actor      User     @relation("AuditActor", fields: [actorId], references: [id])
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
   actionType String
   entityType String
   entityId   String
   details    String?
+  ipAddress  String?
+  userAgent  String?
   timestamp  DateTime @default(now())
+
+  @@index([actionType])
+  @@index([timestamp])
+  @@index([actorId])
+  @@index([entityType, entityId])
 }
 
 // 14. JobAlertSubscription
@@ -420,6 +433,18 @@ model CommentMention {
   userId    String
   user      User               @relation(fields: [userId], references: [id])
   createdAt DateTime           @default(now())
+
+  @@index([userId])
+}
+
+// 22. TwoFactorBackupCode
+model TwoFactorBackupCode {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([userId])
 }
