@@ -592,4 +592,100 @@ export class ReportService {
       positions: items
     };
   }
+
+  /**
+   * Application Aging / SLA Report (R-04, R-05, R-06 - Manager only)
+   * Tracks in-progress applications and their dwell time in current stage against SLA thresholds.
+   */
+  static async getApplicationAgingReport(filters: {
+    department?: string;
+    positionId?: string;
+    severity?: string;
+  } = {}) {
+    const warningDays = parseInt(process.env.APPLICATION_AGING_WARNING_DAYS || '7', 10);
+    const criticalDays = parseInt(process.env.APPLICATION_AGING_CRITICAL_DAYS || '14', 10);
+    const now = new Date();
+
+    const where: Record<string, unknown> = {
+      status: ApplicationStatus.InProgress
+    };
+
+    if (filters.positionId) {
+      where.positionId = filters.positionId;
+    }
+
+    if (filters.department) {
+      where.position = {
+        department: { equals: filters.department, mode: 'insensitive' }
+      };
+    }
+
+    const applications = await prisma.application.findMany({
+      where,
+      include: {
+        candidate: {
+          select: { id: true, name: true, email: true }
+        },
+        position: {
+          select: { id: true, title: true, department: true }
+        },
+        currentStage: {
+          select: { id: true, name: true, sequenceOrder: true }
+        }
+      },
+      orderBy: { stageEnteredAt: 'asc' }
+    });
+
+    let warningCount = 0;
+    let criticalCount = 0;
+    let normalCount = 0;
+
+    const items = applications.map((app) => {
+      const enteredAt = app.stageEnteredAt || app.createdAt;
+      const ageInMs = now.getTime() - enteredAt.getTime();
+      const ageInDays = Math.max(0, Math.floor(ageInMs / (1000 * 60 * 60 * 24)));
+
+      let severity: 'Normal' | 'Warning' | 'Critical' = 'Normal';
+      if (ageInDays >= criticalDays) {
+        severity = 'Critical';
+        criticalCount++;
+      } else if (ageInDays >= warningDays) {
+        severity = 'Warning';
+        warningCount++;
+      } else {
+        normalCount++;
+      }
+
+      return {
+        id: app.id,
+        candidateName: app.candidate.name,
+        candidateEmail: app.candidate.email,
+        positionId: app.position.id,
+        positionTitle: app.position.title,
+        department: app.position.department,
+        currentStageId: app.currentStage.id,
+        currentStageName: app.currentStage.name,
+        currentStageSequence: app.currentStage.sequenceOrder,
+        stageEnteredAt: enteredAt,
+        ageInDays,
+        severity
+      };
+    });
+
+    const filteredItems = filters.severity
+      ? items.filter((item) => item.severity.toLowerCase() === filters.severity!.toLowerCase())
+      : items;
+
+    return {
+      summary: {
+        totalApplications: applications.length,
+        warningCount,
+        criticalCount,
+        normalCount,
+        warningThresholdDays: warningDays,
+        criticalThresholdDays: criticalDays
+      },
+      applications: filteredItems
+    };
+  }
 }

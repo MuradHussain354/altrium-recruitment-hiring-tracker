@@ -131,10 +131,13 @@ export interface SubmitFeedbackInput {
 export interface NotificationItem {
   id: string;
   applicationId: string | null;
+  interviewId?: string | null;
   recipientType: string;
   recipientId: string;
   type: string;
   channel: string;
+  isRead: boolean;
+  readAt?: string | null;
   sentAt: string;
 }
 

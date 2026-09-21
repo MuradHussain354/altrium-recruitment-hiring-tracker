@@ -27,4 +27,8 @@ router.get('/cross-team', ReportController.getCrossTeamAnalytics);
 // GET /api/v1/reports/headcount-fulfillment
 router.get('/headcount-fulfillment', ReportController.getHeadcountFulfillmentReport);
 
+// GET /api/v1/reports/aging
+// Manager only: Application Aging & Stage SLA Report (R-04, R-05, R-06)
+router.get('/aging', ReportController.getApplicationAgingReport);
+
 export default router;

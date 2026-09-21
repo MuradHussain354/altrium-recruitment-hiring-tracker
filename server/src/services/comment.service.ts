@@ -1,6 +1,6 @@
 import prisma from '../config/prisma';
 import { AppError } from '../utils/errors';
-import { Role, RecipientType, NotificationType } from '@prisma/client';
+import { Role, RecipientType, NotificationType, NotificationChannel } from '@prisma/client';
 
 export class CommentService {
   /**
@@ -74,7 +74,8 @@ export class CommentService {
               applicationId,
               recipientType: RecipientType.User,
               recipientId: userId,
-              type: NotificationType.FeedbackReminder
+              type: NotificationType.CommentMention,
+              channel: NotificationChannel.InApp
             }
           });
         }

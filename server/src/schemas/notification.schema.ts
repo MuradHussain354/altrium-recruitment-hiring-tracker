@@ -5,6 +5,10 @@ export const notificationIdParamSchema = z.object({
   notificationId: z.string().uuid('Invalid notification ID format')
 });
 
+export const idParamSchema = z.object({
+  id: z.string().uuid('Invalid notification ID format')
+});
+
 export const listNotificationsSchema = z.object({
   type: z.nativeEnum(NotificationType, { errorMap: () => ({ message: 'Invalid notification type' }) }).optional(),
   limit: z.coerce.number().int().positive('Limit must be a positive integer').optional(),

@@ -174,7 +174,7 @@ export class ApplicationManagementService {
     const updatedApplication = await prisma.$transaction(async (tx) => {
       const updated = await tx.application.update({
         where: { id: applicationId },
-        data:  { currentStageId: input.stageId },
+        data:  { currentStageId: input.stageId, stageEnteredAt: new Date() },
         include: detailInclude
       });
 
@@ -351,7 +351,7 @@ export class ApplicationManagementService {
 
           await tx.application.update({
             where: { id: applicationId },
-            data: { currentStageId: targetStageId }
+            data: { currentStageId: targetStageId, stageEnteredAt: new Date() }
           });
 
           await tx.auditLog.create({

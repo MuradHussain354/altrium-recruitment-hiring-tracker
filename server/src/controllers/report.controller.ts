@@ -119,4 +119,25 @@ export class ReportController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/v1/reports/aging
+   * Manager only: Application Aging & Stage SLA Report (R-04, R-05, R-06)
+   */
+  static async getApplicationAgingReport(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const filters = {
+        department: req.query.department as string | undefined,
+        positionId: req.query.positionId as string | undefined,
+        severity: req.query.severity as string | undefined
+      };
+
+      const report = await ReportService.getApplicationAgingReport(filters);
+      res.status(200).json({
+        data: report
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

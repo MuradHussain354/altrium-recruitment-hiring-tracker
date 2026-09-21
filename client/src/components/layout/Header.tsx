@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { LogOut, User as UserIcon, Search } from 'lucide-react';
 import { Role } from '../../types/auth';
 import { quickSearch, SearchResultItem } from '../../api/batch2.api';
+import { NotificationBell } from '../common/NotificationBell';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -306,6 +307,8 @@ export const Header: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+        {user && <NotificationBell />}
+
         {user && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div

@@ -174,10 +174,11 @@ export class InterviewService {
         await tx.notification.createMany({
           data: input.interviewerIds.map((interviewerId) => ({
             applicationId,
+            interviewId:   created.id,
             recipientType: RecipientType.User,
             recipientId:   interviewerId,
             type:          NotificationType.InterviewScheduled,
-            channel:       NotificationChannel.Email
+            channel:       NotificationChannel.InApp
           }))
         });
       }
@@ -323,6 +324,16 @@ export class InterviewService {
         include: interviewDetailInclude
       });
 
+      // R-03 Option B: Invalidate previous FeedbackReminder notifications when interview is rescheduled
+      if (input.scheduledAt !== undefined) {
+        await tx.notification.deleteMany({
+          where: {
+            interviewId,
+            type: NotificationType.FeedbackReminder
+          }
+        });
+      }
+
       await tx.auditLog.create({
         data: {
           actorId,
@@ -459,10 +470,11 @@ export class InterviewService {
         await tx.notification.createMany({
           data: addedIds.map((interviewerId) => ({
             applicationId: interview.applicationId,
+            interviewId,
             recipientType: RecipientType.User,
             recipientId:   interviewerId,
             type:          NotificationType.InterviewScheduled,
-            channel:       NotificationChannel.Email
+            channel:       NotificationChannel.InApp
           }))
         });
       }
@@ -670,10 +682,11 @@ export class InterviewService {
       await tx.notification.create({
         data: {
           applicationId: interview.applicationId,
+          interviewId,
           recipientType: RecipientType.User,
           recipientId: targetInterviewerId,
           type: NotificationType.InterviewScheduled,
-          channel: NotificationChannel.Email
+          channel: NotificationChannel.InApp
         }
       });
 

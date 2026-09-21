@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { notificationsApi } from '../../api/notifications.api';
 import { NotificationItem } from '../../types/teamlead';
 import { NotificationList } from '../../components/shared/NotificationList';
@@ -9,7 +9,7 @@ export const ManagerNotificationsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -20,11 +20,33 @@ export const ManagerNotificationsPage: React.FC = () => {
       setError(err.message || 'Failed to load notifications.');
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await notificationsApi.markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n))
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationsApi.markAllAsRead();
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true, readAt: n.readAt || new Date().toISOString() }))
+      );
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <div style={{ maxWidth: '850px', margin: '0 auto' }}>
@@ -67,7 +89,12 @@ export const ManagerNotificationsPage: React.FC = () => {
       )}
 
       {/* Notification List */}
-      <NotificationList notifications={notifications} isLoading={isLoading} />
+      <NotificationList
+        notifications={notifications}
+        isLoading={isLoading}
+        onMarkAsRead={handleMarkAsRead}
+        onMarkAllAsRead={handleMarkAllAsRead}
+      />
     </div>
   );
 };

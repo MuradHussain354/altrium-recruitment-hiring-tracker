@@ -57,10 +57,12 @@ enum NotificationType {
   Rejection
   Offer
   FeedbackReminder
+  CommentMention
 }
 
 enum NotificationChannel {
   Email
+  InApp
 }
 
 enum InvitationStatus {
@@ -197,6 +199,7 @@ model Application {
   statusReason   String?
   notes          String?
   createdAt      DateTime          @default(now())
+  stageEnteredAt DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   offerApprovalStatus OfferApprovalStatus?
@@ -236,6 +239,7 @@ model Interview {
 
   assignments InterviewerAssignment[]
   feedbacks   Feedback[]
+  notifications Notification[]
 }
 
 // 9. InterviewerAssignment
@@ -286,11 +290,18 @@ model FeedbackCriterionScore {
 model Notification {
   id            String              @id @default(uuid())
   applicationId String?
+  interviewId   String?
+  interview     Interview?          @relation(fields: [interviewId], references: [id], onDelete: SetNull)
   recipientType RecipientType
   recipientId   String
   type          NotificationType
   channel       NotificationChannel @default(Email)
+  isRead        Boolean             @default(false)
+  readAt        DateTime?
   sentAt        DateTime            @default(now())
+
+  @@index([recipientId, isRead])
+  @@index([interviewId, recipientId, type])
 }
 
 // 13. AuditLog
