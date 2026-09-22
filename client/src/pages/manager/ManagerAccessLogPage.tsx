@@ -16,11 +16,8 @@ import {
   Clock,
   Monitor,
   User as UserIcon,
-  ShieldCheck,
-  ShieldOff,
   LogIn,
   LogOut,
-  KeyRound,
   AlertCircle,
 } from 'lucide-react';
 
@@ -31,13 +28,6 @@ const ACTION_TYPE_META: Record<string, { label: string; color: string; icon: Rea
   AUTH_LOGIN_SUCCESS:       { label: 'Login',            color: 'var(--accent-emerald)', icon: <LogIn size={13} /> },
   AUTH_LOGIN_FAILED:        { label: 'Login Failed',     color: '#f87171',              icon: <AlertCircle size={13} /> },
   AUTH_LOGOUT:              { label: 'Logout',           color: 'var(--text-muted)',    icon: <LogOut size={13} /> },
-  '2FA_CHALLENGE_ISSUED':   { label: '2FA Challenge',    color: 'var(--accent-cyan)',   icon: <ShieldCheck size={13} /> },
-  '2FA_SUCCESS':            { label: '2FA Success',      color: 'var(--accent-emerald)',icon: <ShieldCheck size={13} /> },
-  '2FA_FAILED':             { label: '2FA Failed',       color: '#f87171',              icon: <ShieldOff size={13} /> },
-  '2FA_SETUP':              { label: '2FA Setup',        color: 'var(--primary)',       icon: <ShieldCheck size={13} /> },
-  '2FA_ENABLED':            { label: '2FA Enabled',      color: 'var(--accent-emerald)',icon: <ShieldCheck size={13} /> },
-  '2FA_DISABLED':           { label: '2FA Disabled',     color: 'var(--accent-amber)',  icon: <ShieldOff size={13} /> },
-  BACKUP_CODES_REGENERATED: { label: 'Backup Codes',    color: 'var(--accent-cyan)',   icon: <KeyRound size={13} /> },
 };
 
 const getActionMeta = (actionType: string) =>

@@ -3,14 +3,12 @@ import {
   User,
   AuthContextType,
   LoginCredentials,
-  TwoFactorChallengeResponse,
 } from '../types/auth';
 import {
   getToken,
   setToken,
   removeToken,
   loginApi,
-  verify2FALoginApi,
   getMeApi,
   logoutApi,
 } from '../api/auth.api';
@@ -76,31 +74,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [logout]);
 
   /**
-   * Step 1: email + password login.
-   * - If 2FA not enabled → stores token, sets user, returns User.
-   * - If 2FA enabled → returns TwoFactorChallengeResponse (caller must show Step 2 screen).
+   * Email + password login. On success, stores the token and sets the user.
    */
-  const login = async (credentials: LoginCredentials): Promise<User | TwoFactorChallengeResponse> => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     const response = await loginApi(credentials);
-
-    if (response.requires2FA === false) {
-      // Direct login
-      setToken(response.token);
-      setTokenState(response.token);
-      setUser(response.user);
-      return response.user;
-    }
-
-    // 2FA challenge: return the challenge response — caller handles Step 2
-    return response;
-  };
-
-  /**
-   * Step 2: verify TOTP or backup code with the tempToken from Step 1.
-   * On success, stores permanent token and sets user.
-   */
-  const complete2FALogin = async (tempToken: string, code: string): Promise<User> => {
-    const response = await verify2FALoginApi(tempToken, code);
     setToken(response.token);
     setTokenState(response.token);
     setUser(response.user);
@@ -110,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   /**
    * Applies a session obtained outside the normal login flow (currently: after
    * invitation acceptance, whose response has the same {token, user} shape as
-   * the direct-login and 2FA-verify responses).
+   * the direct-login response).
    */
   const applySession = (token: string, sessionUser: User): void => {
     setToken(token);
@@ -126,7 +103,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isAuthenticated: !!user && !!tokenState,
         isLoading,
         login,
-        complete2FALogin,
         applySession,
         logout,
       }}

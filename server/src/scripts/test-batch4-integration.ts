@@ -1,9 +1,9 @@
 /**
  * Sprint 2 Batch 4 correction pass — database-backed integration tests.
  *
- * Requires a real DATABASE_URL (Postgres) and EMAIL_TOKEN_ENCRYPTION_KEY /
- * TWO_FACTOR_ENCRYPTION_KEY set in the environment. Uses MockProviderAdapter
- * so no real emails are sent and no RESEND_API_KEY is required.
+ * Requires a real DATABASE_URL (Postgres) and EMAIL_TOKEN_ENCRYPTION_KEY set
+ * in the environment. Uses MockProviderAdapter so no real emails are sent and
+ * no RESEND_API_KEY is required.
  *
  * Covers: outbox state machine, idempotency, stuck-Sending recovery, the
  * stale-worker CAS guard, the full invitation lifecycle (create -> details ->
@@ -147,7 +147,7 @@ async function run() {
   assert(tokenReuseRejected, '15. The same invitation token cannot be reused after acceptance');
 
   const postAcceptLogin = await AuthService.login({ email: invitedEmail, password: 'Str0ng!Passw0rd' });
-  assert(postAcceptLogin.requires2FA === false && !!postAcceptLogin.token, '16. Accepted user can now log in normally with their chosen password');
+  assert(!!postAcceptLogin.token, '16. Accepted user can now log in normally with their chosen password');
 
   // Resend invitation invalidates the previous token
   const resendTargetEmail = `batch4.resend.${Date.now()}@altrium.com`;

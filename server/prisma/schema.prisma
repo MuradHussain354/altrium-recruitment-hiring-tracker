@@ -114,11 +114,6 @@ model User {
   createdBy    User?    @relation("UserCreator", fields: [createdById], references: [id])
   createdAt    DateTime @default(now())
 
-  twoFactorEnabled       Boolean                 @default(false)
-  twoFactorSecret        String?
-  twoFactorTempSecret    String?
-  twoFactorTempExpiresAt DateTime?
-
   invitationTokenHash    String?                 @unique
   invitationExpiresAt    DateTime?
 
@@ -139,7 +134,6 @@ model User {
   createdQuestionSets   QuestionSet[]
   applicationComments   ApplicationComment[]
   commentMentions       CommentMention[]
-  twoFactorBackupCodes  TwoFactorBackupCode[]
 }
 
 // 2. Team
@@ -462,19 +456,7 @@ model CommentMention {
   @@index([userId])
 }
 
-// 22. TwoFactorBackupCode
-model TwoFactorBackupCode {
-  id        String    @id @default(uuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codeHash  String
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([userId])
-}
-
-// 23. EmailDeliveryLog
+// 22. EmailDeliveryLog
 model EmailDeliveryLog {
   id                String              @id @default(uuid())
   idempotencyKey    String              @unique

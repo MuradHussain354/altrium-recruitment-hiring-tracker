@@ -5,13 +5,6 @@ import prisma from '../config/prisma';
 export type AuthAuditEventType =
   | 'AUTH_LOGIN_SUCCESS'
   | 'AUTH_LOGIN_FAILED'
-  | '2FA_CHALLENGE_ISSUED'
-  | '2FA_SUCCESS'
-  | '2FA_FAILED'
-  | '2FA_SETUP'
-  | '2FA_ENABLED'
-  | '2FA_DISABLED'
-  | 'BACKUP_CODES_REGENERATED'
   | 'AUTH_LOGOUT';
 
 export interface CreateAuditLogParams {
@@ -114,7 +107,7 @@ export class AuditLogService {
   }
 
   /**
-   * High-level helper specifically tailored for authentication and 2FA events.
+   * High-level helper specifically tailored for authentication events.
    */
   public static async logAuthEvent(
     params: LogAuthEventParams,

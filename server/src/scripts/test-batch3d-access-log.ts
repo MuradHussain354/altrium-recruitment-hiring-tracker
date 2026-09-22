@@ -7,9 +7,6 @@ if (!process.env.DATABASE_URL) {
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'test_jwt_secret_for_batch3d_verification_12345';
 }
-if (!process.env.TWO_FACTOR_ENCRYPTION_KEY) {
-  process.env.TWO_FACTOR_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-}
 
 import prisma from '../config/prisma';
 import app from '../app';

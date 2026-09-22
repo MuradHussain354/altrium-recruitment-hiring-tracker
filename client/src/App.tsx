@@ -34,7 +34,6 @@ import { ManagerNotificationsPage } from './pages/manager/ManagerNotificationsPa
 import ManagerAnalyticsPage from './pages/manager/ManagerAnalyticsPage';
 import ManagerOfferApprovalsPage from './pages/manager/ManagerOfferApprovalsPage';
 import { ManagerAccessLogPage } from './pages/manager/ManagerAccessLogPage';
-import SecuritySettingsPage from './pages/SecuritySettingsPage';
 
 // TeamLead Portal Pages
 import { TeamLeadDashboardPage } from './pages/teamlead/TeamLeadDashboardPage';
@@ -117,9 +116,6 @@ export default function App() {
             <Route path="/team-lead/interviews/:interviewId" element={<TeamLeadInterviewDetailPage />} />
             <Route path="/team-lead/notifications" element={<TeamLeadNotificationsPage />} />
           </Route>
-
-          {/* Shared Security Settings (all authenticated roles) */}
-          <Route path="/settings/security" element={<SecuritySettingsPage />} />
         </Route>
       </Route>
 
