@@ -3,8 +3,39 @@ import http from 'http';
 import app from '../app';
 import prisma from '../config/prisma';
 import { bootstrapManager } from './seed';
+import { EmailEventType } from '@prisma/client';
+import { decryptEmailToken } from '../utils/email-crypto';
 
 dotenv.config();
+
+/**
+ * S2-45: Manager-created accounts are invitation-pending (isActive: false)
+ * with no usable password until the invitation is accepted. This helper
+ * exercises the REAL HTTP invitation-acceptance flow (not a DB bypass) so
+ * this suite still proves the end-to-end account-provisioning path works,
+ * just via its current two-step (invite -> accept) design instead of the
+ * old one-step (create with password) design.
+ */
+async function acceptInvitationViaHttp(
+  baseUrl: string,
+  userId: string,
+  chosenPassword: string
+): Promise<{ status: number; body: any }> {
+  const log = await prisma.emailDeliveryLog.findFirst({
+    where: { userId, eventType: EmailEventType.AccountInvitation },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!log) throw new Error(`No AccountInvitation outbox row found for user ${userId}`);
+  const rawToken = decryptEmailToken((log.payload as any).encryptedToken);
+
+  const res = await fetch(`${baseUrl}/auth/accept-invitation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: rawToken, password: chosenPassword }),
+  });
+  const body = await res.json();
+  return { status: res.status, body };
+}
 
 async function runHttpTests() {
   if (process.env.NODE_ENV === 'production') {
@@ -75,7 +106,8 @@ async function runHttpTests() {
     assert(meRes.status === 200, '5. GET /api/v1/auth/me returns HTTP 200');
     assert(meData.user.email === managerEmail.toLowerCase(), '6. /me returns authenticated user details');
 
-    // 4. HTTP POST /api/v1/users (Manager Creates HR Account)
+    // 4. HTTP POST /api/v1/users (Manager Invites HR Account) — S2-45: no
+    // password is collected here; the account is created invitation-pending.
     const createHrRes = await fetch(`${baseUrl}/users`, {
       method: 'POST',
       headers: {
@@ -85,24 +117,40 @@ async function runHttpTests() {
       body: JSON.stringify({
         name: 'Jane HR',
         email: 'jane.hr@altrium.com',
-        password: 'HrPassword123!',
         role: 'HR'
       })
     });
     const createHrData = await createHrRes.json();
     assert(createHrRes.status === 201, '7. POST /api/v1/users (Manager -> HR) returns HTTP 201 Created');
     assert(createHrData.user.createdById === loginData.user.id, '8. New user createdById matches Manager ID');
+    assert(createHrData.user.isActive === false, '8b. Newly invited account is created inactive (invitation-pending)');
 
     const hrId = createHrData.user.id;
 
-    // 5. HR Login
+    // 5a. Pending (unaccepted) account cannot log in yet — S2-45 login barrier
+    const pendingLoginRes = await fetch(`${baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'jane.hr@altrium.com', password: 'AnyGuess123!' })
+    });
+    assert(pendingLoginRes.status === 401 || pendingLoginRes.status === 403, '9a. Pending invited account cannot log in before accepting');
+
+    // 5b. Accept the invitation via the real HTTP endpoint (decrypting the raw
+    // token from the durable outbox the same way the invited user's email
+    // would deliver it) and set the chosen password.
+    const hrChosenPassword = 'HrPassword123!';
+    const acceptRes = await acceptInvitationViaHttp(baseUrl, hrId, hrChosenPassword);
+    assert(acceptRes.status === 200, '9b. POST /auth/accept-invitation activates the account (200 OK)');
+    assert(acceptRes.body.user?.isActive === true, '9c. Accepted account is now active');
+
+    // 5c. HR Login with the password chosen during acceptance
     const hrLoginRes = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'jane.hr@altrium.com', password: 'HrPassword123!' })
+      body: JSON.stringify({ email: 'jane.hr@altrium.com', password: hrChosenPassword })
     });
     const hrLoginData = await hrLoginRes.json();
-    assert(hrLoginRes.status === 200, '9. HR account logs in successfully');
+    assert(hrLoginRes.status === 200, '9. HR account logs in successfully after accepting its invitation');
     const hrToken = hrLoginData.token;
 
     // 6. RBAC Check: HR Attempts User Creation (Expect HTTP 403 Forbidden)

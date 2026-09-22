@@ -133,7 +133,12 @@ async function runFeedbackProgressionTests() {
     });
 
     // ── 4. Schedule Interviews ─────────────────────────────────────────────────
+    // Three separate interviews below reuse teamLead1/teamLead2 as interviewers
+    // and are never cancelled, so each needs a distinct time — S2-13 scheduling
+    // conflict detection correctly rejects double-booking the same interviewer.
     const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const futureDate2 = new Date(futureDate.getTime() + 3 * 60 * 60 * 1000);
+    const futureDate3 = new Date(futureDate.getTime() + 6 * 60 * 60 * 1000);
 
     // Interview 1 for App 1 at Stage 1 (interviewers: teamLead1, teamLead2)
     const interview1 = await InterviewService.createInterview(hrUser.id, app1.id, {
@@ -331,7 +336,7 @@ async function runFeedbackProgressionTests() {
     // Create Interview 2 for App 1 at Stage 2
     const interview2 = await InterviewService.createInterview(hrUser.id, app1.id, {
       stageId:        stage2.id,
-      scheduledAt:    futureDate,
+      scheduledAt:    futureDate2,
       interviewerIds: [teamLead1.id, teamLead2.id]
     });
 
@@ -385,7 +390,7 @@ async function runFeedbackProgressionTests() {
     // Create Interview 3 for App 2 at Stage 1 with TeamLead 1 and TeamLead 2
     const interview3 = await InterviewService.createInterview(hrUser.id, app2.id, {
       stageId:        stage1.id,
-      scheduledAt:    futureDate,
+      scheduledAt:    futureDate3,
       interviewerIds: [teamLead1.id, teamLead2.id]
     });
 

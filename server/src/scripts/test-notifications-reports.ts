@@ -207,7 +207,13 @@ async function runNotificationsAndReportsTests() {
     assert(tl1NotificationsAfterCreate.length === 1, '8. TeamLead 1 received exactly 1 notification');
     assert(tl1NotificationsAfterCreate[0].type === NotificationType.InterviewScheduled, '9. Notification type is InterviewScheduled');
     assert(tl1NotificationsAfterCreate[0].recipientType === RecipientType.User, '10. Recipient type is User');
-    assert(tl1NotificationsAfterCreate[0].channel === NotificationChannel.Email, '11. Notification channel is Email');
+    // In-app bell notifications use NotificationChannel.InApp; actual email
+    // delivery for InterviewScheduled goes through the separate Batch 4
+    // EmailDeliveryLog outbox (EmailService.sendInterviewScheduled), not this
+    // model. Matches every other creation site (interview.service.ts,
+    // interview-reminder.job.ts, comment.service.ts) and the Batch 3A suite's
+    // own assertion of the same fact ("N-08: ... uses NotificationChannel.InApp").
+    assert(tl1NotificationsAfterCreate[0].channel === NotificationChannel.InApp, '11. Notification channel is InApp');
     assert(tl1NotificationsAfterCreate[0].applicationId === app1.id, '12. Notification links to correct applicationId');
     assert(tl1NotificationsAfterCreate[0].sentAt instanceof Date, '13. Notification sentAt is valid timestamp');
 
@@ -263,8 +269,11 @@ async function runNotificationsAndReportsTests() {
     assert(crossAccessBlocked, '25. Accessing another users notification is blocked (safe 404)');
 
     // Test A6: Notification payload contains only persisted model fields (no fake fields or candidate PII)
+    // Field list matches NotificationService.getNotificationById()'s actual
+    // select — includes interviewId (interview linkage) and isRead/readAt
+    // (Batch 3A read-state tracking), none of which are sensitive.
     const notifKeys = Object.keys(tl1Detail);
-    const expectedKeys = ['id', 'applicationId', 'recipientType', 'recipientId', 'type', 'channel', 'sentAt'];
+    const expectedKeys = ['id', 'applicationId', 'interviewId', 'recipientType', 'recipientId', 'type', 'channel', 'isRead', 'readAt', 'sentAt'];
     const hasOnlyExpectedKeys = notifKeys.every((k) => expectedKeys.includes(k));
     assert(hasOnlyExpectedKeys, '26. Notification response contains ONLY persisted schema fields');
     assert(!('meetingLink' in tl1Detail), '27. Notification does NOT contain fake meetingLink');
